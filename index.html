@@ -115,9 +115,9 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
         </div>
         <div id="mine" class="hidden">
           <a class="btn primary big" id="openLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Ouvrir mon navigateur</a>
-          <p class="small muted" style="margin-top:12px">Il s'ouvre dans un nouvel onglet, connecté automatiquement. Ce navigateur est le vôtre pour cette session : personne d'autre n'y est connecté.</p>
-          <details style="margin:12px 0">
-            <summary class="small">Si on vous demande un identifiant</summary>
+          <p class="small muted" style="margin-top:12px">Quand le navigateur demande un identifiant, saisissez <b>kasm_user</b> et collez le mot de passe copié ci-dessous. Ce navigateur est le vôtre pour cette session.</p>
+          <details open style="margin:12px 0">
+            <summary class="small">Identifiant et mot de passe de la session</summary>
             <p class="small muted" style="margin:8px 0 0">Identifiant : <b>kasm_user</b>. Le mot de passe est valable pour cette session seulement.</p>
             <div class="row" style="margin-top:8px"><input id="pw" type="password" readonly><button id="showPw" type="button">Afficher</button><button id="copyPw" type="button">Copier</button></div>
           </details>
@@ -467,9 +467,7 @@ async function refreshSlot(){
     $("prepText").textContent = "Environ 1 à 2 minutes, parfois plus. Cette page se met à jour toute seule. Si le serveur est éteint, démarrez-le avec le bandeau ci-dessous.";
     showSlotPanel("prep");
   } else {
-    let href = slot.url;
-    try{ const u = new URL(slot.url); u.username = "kasm_user"; u.password = slot.password || ""; href = u.href; }catch(e){}
-    $("openLink").href = href;
+    $("openLink").href = slot.url;
     $("pw").value = slot.password || "";
     showSlotPanel("mine");
     stopSlot();
