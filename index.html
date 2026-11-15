@@ -50,6 +50,23 @@ ul.check{list-style:none;padding:0;margin:0}
 ul.check li{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
 ul.check input{width:22px;min-height:22px;margin-top:3px}
 .big{min-height:56px;font-size:18px;font-weight:600;width:100%}
+
+/* ---- CGU et bandeau légal ---- */
+body{padding-bottom:64px}
+#legalBar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between;padding:8px 16px calc(8px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line)}
+#legalBar button{min-height:36px;padding:0 10px;border:0;background:transparent;color:var(--brand);text-decoration:underline;font-size:14px}
+#cguOverlay{position:fixed;inset:0;z-index:100;background:rgba(10,14,22,.62);display:flex;align-items:center;justify-content:center;padding:16px}
+#cguOverlay.hidden{display:none}
+#cguBox{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);width:100%;max-width:760px;max-height:92dvh;display:flex;flex-direction:column;padding:18px 18px 14px}
+#cguBox h2{margin:0 0 6px;font-size:20px}
+#cguBody{overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;padding:4px 16px;flex:1;min-height:200px;font-size:14px}
+#cguBody h3{font-size:16px;margin:18px 0 6px}
+#cguBody h4{font-size:14px;margin:14px 0 4px}
+#cguBody p,#cguBody li{margin:6px 0}
+#cguBody ul{padding-left:20px}
+#cguActions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+#cguActions button[disabled]{opacity:.5;cursor:not-allowed}
+.missing{background:color-mix(in srgb,var(--warn) 25%,transparent);padding:0 3px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -203,6 +220,110 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
 </section>
 
 </main>
+</div>
+
+<!-- ===== CGU / CONFIDENTIALITÉ / MENTIONS LÉGALES ===== -->
+<div id="legalBar" role="contentinfo">
+  <span class="small muted">En utilisant ce service, vous acceptez nos conditions.</span>
+  <span>
+    <button type="button" data-legal="cgu">CGU</button>
+    <button type="button" data-legal="priv">Confidentialité</button>
+    <button type="button" data-legal="ment">Mentions légales</button>
+  </span>
+</div>
+
+<div id="cguOverlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="cguTitle">
+  <div id="cguBox">
+    <h2 id="cguTitle">Conditions d'utilisation et confidentialité</h2>
+    <p class="small muted" id="cguIntro" style="margin:0 0 8px">Merci de lire ces conditions jusqu'au bout avant de continuer.</p>
+    <div id="cguBody" tabindex="0">
+      <h3 id="legal-cgu">1. Conditions générales d'utilisation</h3>
+      <p><b>Version du <span data-f="date"></span>.</b> Ce document régit l'utilisation du service « Remote Browser » (le « Service »), édité par <b data-f="name"></b> (l'« Éditeur »). En créant un compte ou en utilisant le Service, vous déclarez avoir lu et accepté ces conditions. Si vous les refusez, n'utilisez pas le Service.</p>
+
+      <h4>1.1 Objet du Service</h4>
+      <p>Le Service met à votre disposition, depuis un navigateur web classique, un navigateur (Chromium) qui s'exécute sur un serveur distant. L'écran de ce navigateur est transmis vers votre appareil, et vos clics et votre saisie y sont renvoyés. Aucun logiciel n'est installé sur votre appareil.</p>
+
+      <h4>1.2 Accès, compte et sessions</h4>
+      <p>L'accès nécessite un compte personnel. Vous êtes responsable de la confidentialité de votre mot de passe et de toute activité réalisée avec votre compte. Une session ouvre un navigateur qui vous est réservé jusqu'à sa fermeture. Le nombre de navigateurs disponibles est limité : l'Éditeur ne garantit pas qu'un navigateur soit libre à tout moment. Une session est fermée automatiquement lorsque vous cliquez sur « Fermer ma session », lorsque plus personne n'est connecté pendant un délai donné, ou lorsque votre compte est suspendu.</p>
+      <p>Vous devez avoir au moins 15 ans ; si vous êtes mineur, vous déclarez disposer de l'autorisation de votre représentant légal.</p>
+
+      <h4>1.3 Service gratuit, « en l'état »</h4>
+      <p>Le Service est fourni gratuitement, à titre expérimental, sans garantie de disponibilité, de performance, de continuité ni d'adéquation à un usage particulier. Il peut être interrompu, limité ou arrêté à tout moment, notamment lorsque le serveur est éteint (le démarrage prend alors une à deux minutes, parfois plus). Certaines pages (par exemple des vérifications « captcha ») peuvent être plus lentes ou refuser de s'afficher, en raison de la détection de robots par les sites visités.</p>
+
+      <h4>1.4 Usages interdits</h4>
+      <p>Vous vous engagez à ne pas utiliser le Service pour : (a) toute activité illégale, y compris l'accès ou la diffusion de contenus illicites ; (b) porter atteinte aux droits de tiers (propriété intellectuelle, vie privée, image) ; (c) attaquer, scanner, surcharger ou perturber des sites, des réseaux ou le Service lui-même ; (d) envoyer des messages non sollicités, mener des fraudes, du hameçonnage ou de l'usurpation d'identité ; (e) contourner les limites, restrictions ou mesures de sécurité du Service, ou ouvrir le Service dans lui-même (navigation « en cascade ») ; (f) revendre, partager ou céder l'accès à votre compte ; (g) miner des cryptomonnaies ou réaliser des calculs intensifs sans rapport avec la navigation.</p>
+      <p>Certains sites peuvent être bloqués par le Service. Cette liste peut évoluer sans préavis.</p>
+
+      <h4>1.5 Vos contenus et vos données saisies</h4>
+      <p>Vous restez responsable de ce que vous consultez, saisissez ou téléchargez via le Service et du respect des conditions des sites visités. <b>Le Service ne vous accorde aucun droit sur ces sites ni sur leurs contenus.</b></p>
+
+      <h4>1.6 Suspension et résiliation</h4>
+      <p>L'Éditeur peut suspendre ou supprimer un compte, sans préavis, en cas de manquement à ces conditions, de suspicion d'abus ou d'impératif de sécurité. Vous pouvez demander la suppression de votre compte à tout moment (voir la section 3).</p>
+
+      <h4>1.7 Responsabilité</h4>
+      <p>Dans les limites permises par la loi, l'Éditeur n'est pas responsable des dommages indirects, de la perte de données, du contenu des sites visités, ni des interruptions du Service. Rien dans ces conditions ne limite les droits qui vous sont reconnus de manière impérative par la loi, ni la responsabilité de l'Éditeur en cas de faute lourde ou dolosive. Vous êtes seul responsable de votre utilisation du Service ; en cas de réclamation d'un tiers liée à votre usage, vous vous engagez à en assumer les conséquences dans la mesure permise par la loi.</p>
+
+      <h4>1.8 Propriété intellectuelle</h4>
+      <p>Le portail (interface, textes, code propre au Service) appartient à l'Éditeur ou à ses concédants. Chromium, KasmVNC et les autres composants logiciels sont soumis à leurs licences respectives.</p>
+
+      <h4>1.9 Modification des conditions</h4>
+      <p>L'Éditeur peut modifier ces conditions. La version applicable est celle affichée dans le Service ; en cas de changement important, une nouvelle acceptation vous sera demandée. L'usage du Service après modification vaut acceptation.</p>
+
+      <h4>1.10 Droit applicable et litiges</h4>
+      <p>Ces conditions sont régies par le droit français. En cas de litige, une solution amiable sera recherchée en priorité ; à défaut, les tribunaux français compétents seront saisis, sans préjudice des règles de compétence protectrices applicables aux consommateurs. Si vous agissez en tant que consommateur, vous pouvez recourir gratuitement à un médiateur de la consommation.</p>
+
+      <h3 id="legal-priv">2. Fonctionnement du Service et limites de la confidentialité</h3>
+      <p>Merci de lire cette section avec attention : elle décrit ce qui se passe réellement.</p>
+      <ul>
+        <li><b>Le navigateur s'exécute sur un serveur, pas sur votre appareil.</b> Les pages que vous consultez, les cookies, les jetons de connexion, l'historique et les fichiers téléchargés pendant la session sont donc stockés temporairement sur ce serveur.</li>
+        <li><b>Effacement à la fermeture.</b> À la fin de votre session, le navigateur est détruit avec son contenu (historique, cookies, connexions, téléchargements) et remplacé par un navigateur vide. Aucun profil n'est conservé d'une session à l'autre. Si vous voulez retrouver une connexion, vous devrez la refaire.</li>
+        <li><b>Pas de confidentialité absolue.</b> Pendant votre session, l'Éditeur et les prestataires d'hébergement (section 3) disposent techniquement d'un accès au serveur et pourraient, en théorie, voir ce qui s'y trouve. L'Éditeur s'engage à ne pas consulter vos contenus, sauf nécessité de sécurité, de maintenance ou obligation légale. <b>Nous vous déconseillons de saisir des informations très sensibles</b> (données bancaires, mots de passe de comptes importants, documents confidentiels, données de santé).</li>
+        <li><b>Effacement différé possible.</b> Si le serveur est éteint ou interrompu, l'effacement a lieu au prochain démarrage. Si vous fermez simplement la fenêtre, le navigateur est effacé après quelques minutes d'inactivité (10 minutes par défaut).</li>
+        <li><b>Sites visités.</b> Les sites que vous visitez voient l'adresse du serveur, non la vôtre, et appliquent leurs propres conditions et politiques de confidentialité.</li>
+      </ul>
+
+      <h3 id="legal-priv2">3. Protection des données personnelles (RGPD)</h3>
+      <h4>3.1 Responsable du traitement</h4>
+      <p><b data-f="name"></b>, <span data-f="address"></span>. Contact : <b data-f="email"></b>.</p>
+
+      <h4>3.2 Données traitées, finalités et bases légales</h4>
+      <ul>
+        <li><b>Données de compte</b> : adresse e-mail, mot de passe (conservé sous forme chiffrée irréversible, jamais en clair), date d'inscription, statut du compte. Finalité : créer et gérer votre compte, vous donner accès au Service. Base légale : exécution du service demandé.</li>
+        <li><b>Données de session</b> : emplacement attribué, état et horaires de la session, mot de passe de session aléatoire (supprimé à la fermeture). Finalité : attribuer, sécuriser et fermer votre navigateur. Base légale : exécution du service.</li>
+        <li><b>Données techniques et de sécurité</b> : adresse IP, journaux de connexion et d'erreur des composants du Service. Finalité : sécurité, détection des abus, dépannage. Base légale : intérêt légitime de l'Éditeur à protéger le Service.</li>
+        <li><b>Contenus de navigation</b> (historique, cookies, jetons, fichiers) : présents uniquement pendant la session et effacés à sa fermeture. Ils ne sont ni analysés, ni utilisés à d'autres fins, ni vendus.</li>
+        <li><b>Stockage local du portail</b> : le portail enregistre dans votre navigateur votre session de connexion et votre acceptation de ces conditions. Il n'utilise ni publicité ni traceur d'audience.</li>
+      </ul>
+
+      <h4>3.3 Durée de conservation</h4>
+      <p>Les données de compte sont conservées jusqu'à la suppression du compte. Les données de session sont supprimées à la fermeture de la session. Les journaux techniques sont conservés pour une durée limitée, le temps nécessaire à la sécurité et au dépannage (en principe moins de 12 mois).</p>
+
+      <h4>3.4 Destinataires et sous-traitants</h4>
+      <p>Les données sont traitées par l'Éditeur et par les prestataires techniques suivants, qui peuvent se situer hors de l'Union européenne (notamment aux États-Unis, avec des garanties telles que des clauses contractuelles types ou le cadre de protection des données applicable) : <b>Supabase</b> (comptes et état des sessions), <b>GitHub / Microsoft</b> (hébergement du portail et des serveurs de navigation). L'Éditeur ne vend pas vos données.</p>
+
+      <h4>3.5 Vos droits</h4>
+      <p>Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données. Pour les exercer, écrivez à <b data-f="email"></b>. Vous pouvez aussi introduire une réclamation auprès de la CNIL (www.cnil.fr).</p>
+
+      <h4>3.6 Sécurité</h4>
+      <p>Chaque session utilise un navigateur isolé, avec un mot de passe aléatoire propre à la session, et les échanges sont chiffrés (HTTPS). Aucun système n'étant totalement sûr, l'Éditeur ne peut garantir une sécurité absolue ; en cas de violation de données présentant un risque pour vous, vous en serez informé conformément à la loi.</p>
+
+      <h3 id="legal-ment">4. Mentions légales</h3>
+      <ul>
+        <li><b>Éditeur du Service</b> : <b data-f="name"></b>, <span data-f="address"></span>. Contact : <b data-f="email"></b>.</li>
+        <li><b>Directeur de la publication</b> : <b data-f="name"></b>.</li>
+        <li><b>Hébergement du portail</b> : GitHub, Inc. (GitHub Pages), 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</li>
+        <li><b>Base de données et authentification</b> : Supabase, Inc.</li>
+        <li><b>Serveurs de navigation</b> : GitHub Codespaces (Microsoft / GitHub, Inc.).</li>
+      </ul>
+      <p class="small muted">Fin du document. En cliquant sur « J'ai lu et j'accepte », vous reconnaissez avoir pris connaissance des sections 1 à 4.</p>
+    </div>
+    <p class="small muted" id="cguHint" style="margin:8px 0 0">Faites défiler jusqu'en bas pour pouvoir accepter.</p>
+    <div id="cguActions">
+      <button type="button" id="cguRefuse">Refuser</button>
+      <button type="button" id="cguAccept" class="primary" disabled>J'ai lu et j'accepte</button>
+      <button type="button" id="cguClose" class="hidden">Fermer</button>
+    </div>
+  </div>
 </div>
 
 <script src="config.js"></script>
@@ -648,6 +769,66 @@ $("addSlot").addEventListener("click", async () => {
   setMode(location.hash === "#inscription" ? "register" : "login");
   const e = await api.restore();
   if (e){ try{ await enterApp(); }catch(x){} }
+})();
+</script>
+
+<script>
+/* ---- CGU : affichage à l'entrée, bandeau permanent ---- */
+(function(){
+  var C = window.RB_CONFIG || {};
+  var VERSION = "2026-11-15"; /* à changer quand les conditions changent : tout le monde doit réaccepter */
+  var KEY = "rb_cgu_accepted";
+  var overlay = document.getElementById("cguOverlay"), body = document.getElementById("cguBody");
+  var btnA = document.getElementById("cguAccept"), btnR = document.getElementById("cguRefuse"), btnC = document.getElementById("cguClose");
+  var hint = document.getElementById("cguHint"), intro = document.getElementById("cguIntro");
+  var mustAccept = false;
+
+  /* Champs à compléter : renseignez-les dans config.js (EDITOR_NAME, EDITOR_ADDRESS, CONTACT_EMAIL) */
+  var fields = {
+    name: C.EDITOR_NAME, address: C.EDITOR_ADDRESS, email: C.CONTACT_EMAIL,
+    date: new Date(VERSION).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
+  };
+  var labels = { name: "[À COMPLÉTER : nom de l'éditeur]", address: "[À COMPLÉTER : adresse]", email: "[À COMPLÉTER : e-mail de contact]" };
+  document.querySelectorAll("[data-f]").forEach(function(el){
+    var k = el.getAttribute("data-f"), v = fields[k];
+    if (v) el.textContent = v; else { el.textContent = labels[k] || ""; el.className += " missing"; }
+  });
+
+  function accepted(){ try{ return localStorage.getItem(KEY) === VERSION; }catch(e){ return sessionStorage_ok(); } }
+  var memAccepted = false;
+  function sessionStorage_ok(){ return memAccepted; }
+  function remember(){ memAccepted = true; try{ localStorage.setItem(KEY, VERSION); }catch(e){} }
+
+  function atEnd(){ return body.scrollTop + body.clientHeight >= body.scrollHeight - 8; }
+  function updateBtn(){ if (mustAccept){ var ok = atEnd(); btnA.disabled = !ok; hint.style.display = ok ? "none" : ""; } }
+  body.addEventListener("scroll", updateBtn);
+
+  function open(mode, anchor){
+    mustAccept = (mode === "accept");
+    btnA.classList.toggle("hidden", !mustAccept); btnR.classList.toggle("hidden", !mustAccept);
+    btnC.classList.toggle("hidden", mustAccept);
+    hint.style.display = mustAccept ? "" : "none";
+    intro.textContent = mustAccept ? "Merci de lire ces conditions jusqu'au bout avant de continuer." : "Vous avez déjà accepté ces conditions. Vous pouvez les relire ici.";
+    overlay.classList.remove("hidden");
+    body.scrollTop = 0;
+    if (anchor){ var t = document.getElementById(anchor); if (t) body.scrollTop = t.offsetTop - body.offsetTop - 4; }
+    setTimeout(updateBtn, 50);
+  }
+  function close(){ overlay.classList.add("hidden"); }
+
+  btnA.addEventListener("click", function(){ if (btnA.disabled) return; remember(); close(); });
+  btnR.addEventListener("click", function(){
+    intro.textContent = "Sans acceptation des conditions, vous ne pouvez pas utiliser le Service. Vous pouvez fermer cette page.";
+  });
+  btnC.addEventListener("click", close);
+  document.querySelectorAll("[data-legal]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var a = { cgu: "legal-cgu", priv: "legal-priv2", ment: "legal-ment" }[b.getAttribute("data-legal")];
+      open(accepted() ? "read" : "accept", a);
+    });
+  });
+
+  if (!accepted()) open("accept");
 })();
 </script>
 </body>
