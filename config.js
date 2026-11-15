@@ -7,6 +7,6 @@
 //
 // Laissez les deux vides pour rester en mode démonstration.
 window.RB_CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: ""
+  SUPABASE_URL: "https://gafdnejtcmghyjfnioge.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_zBw2O5lscP48cAvmc8whqw_OIsq-oR3"
 };
