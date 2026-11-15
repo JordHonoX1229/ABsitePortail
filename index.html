@@ -13,6 +13,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 -apple-s
 button,input,a.btn{font:inherit;color:inherit}
 button,a.btn{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;min-height:44px;padding:0 18px;border-radius:10px;border:1px solid var(--line);background:var(--panel);text-decoration:none;-webkit-tap-highlight-color:transparent}
 .primary{background:var(--brand)!important;color:var(--brand-ink)!important;border-color:transparent!important;font-weight:600}
+.danger{color:var(--bad)!important}
 button:disabled{opacity:.5;cursor:not-allowed}
 input{width:100%;min-height:44px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
 label{display:block;font-size:14px;font-weight:600;margin:14px 0 6px}
@@ -42,8 +43,9 @@ main{padding:20px 0 60px}
 .row{display:flex;gap:8px;flex-wrap:wrap}.row input{flex:1;min-width:200px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.url{word-break:break-all;font-size:13px}
 .badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;font-weight:600;border:1px solid var(--line)}
-.badge.ok{color:var(--ok)}.badge.warn{color:var(--warn)}
+.badge.ok{color:var(--ok)}.badge.warn{color:var(--warn)}.badge.bad{color:var(--bad)}
 ul.check{list-style:none;padding:0;margin:0}
 ul.check li{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
 ul.check input{width:22px;min-height:22px;margin-top:3px}
@@ -60,7 +62,7 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
       <button id="tabLogin" type="button" role="tab">Connexion</button>
       <button id="tabRegister" type="button" role="tab">Inscription</button>
     </div>
-    <div class="notice hidden" id="demoNotice"><strong>Mode démonstration.</strong> Les comptes sont stockés uniquement dans ce navigateur : personne d'autre ne peut s'inscrire. Voir GUIDE.md pour activer les vrais comptes.</div>
+    <div class="notice hidden" id="demoNotice"><strong>Mode démonstration.</strong> Les comptes sont stockés uniquement dans ce navigateur : personne d'autre ne peut s'inscrire. Renseignez config.js pour activer les vrais comptes.</div>
     <form id="authForm" novalidate>
       <label for="email">Adresse e-mail</label>
       <input id="email" type="email" autocomplete="username" autocapitalize="none" inputmode="email" required>
@@ -69,7 +71,7 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
       <div id="pwd2Wrap" class="hidden">
         <label for="pwd2">Confirmer le mot de passe</label>
         <input id="pwd2" type="password" autocomplete="new-password">
-        <p class="small muted" style="margin:6px 0 0">8 caractères minimum. Après inscription, l'administrateur doit valider votre compte.</p>
+        <p class="small muted" style="margin:6px 0 0">8 caractères minimum. Votre compte est actif dès l'inscription.</p>
       </div>
       <p id="authMsg" class="small" style="min-height:22px;margin:10px 0 0" role="status"></p>
       <button class="primary" id="authBtn" type="submit" style="width:100%;margin-top:6px">Se connecter</button>
@@ -96,29 +98,30 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
 <section id="v-home">
   <div class="grid g2">
     <div>
-      <div class="card hidden" id="pending">
-        <h2>Inscription en attente</h2>
-        <p>Votre compte est créé, mais l'administrateur doit encore le valider. Revenez ici ensuite.</p>
-        <button id="refresh">Vérifier à nouveau</button>
+      <div class="card hidden" id="revoked">
+        <h2>Accès révoqué</h2>
+        <p>L'administrateur a retiré votre accès au navigateur distant.</p>
       </div>
       <div class="card hidden" id="ready">
         <h2>Mon navigateur distant</h2>
-        <div id="notConfigured" class="notice hidden">L'administrateur n'a pas encore configuré l'adresse du navigateur.</div>
-        <div id="configured" class="hidden">
+        <div id="full" class="notice hidden"></div>
+        <div id="mine" class="hidden">
           <a class="btn primary big" id="openLink" target="_blank" rel="noopener">Ouvrir mon navigateur</a>
-          <p class="small muted" style="margin-top:12px">Il s'ouvre dans un nouvel onglet. Identifiant : <b>kasm_user</b></p>
-          <div id="pwRow" class="hidden">
-            <label for="pw">Mot de passe du navigateur</label>
-            <div class="row"><input id="pw" type="password" readonly><button id="showPw" type="button">Afficher</button><button id="copyPw" type="button">Copier</button></div>
-          </div>
+          <p class="small muted" style="margin-top:12px">Il s'ouvre dans un nouvel onglet. Identifiant : <b>kasm_user</b>. Ce navigateur est le vôtre : personne d'autre n'y est connecté.</p>
+          <label for="pw">Mot de passe de mon navigateur</label>
+          <div class="row"><input id="pw" type="password" readonly><button id="showPw" type="button">Afficher</button><button id="copyPw" type="button">Copier</button></div>
         </div>
-        <div class="notice">Si une erreur 502 ou 404 s'affiche, le navigateur est peut-être encore en cours de démarrage (plusieurs minutes) ou n'a pas été lancé par l'administrateur. Réessayez un peu plus tard.</div>
+        <div class="notice" id="srv">
+          <b id="srvTitle">Serveur : vérification…</b>
+          <p class="small" id="srvText" style="margin:6px 0 0"></p>
+          <div style="margin-top:10px"><button id="askStart" type="button" class="primary hidden">Démarrer le serveur</button></div>
+          <p id="askMsg" class="small" style="margin:8px 0 0" role="status"></p>
+        </div>
       </div>
     </div>
     <div class="card">
       <h3>Pages de vérification (captcha)</h3>
       <p class="small">Quand une page affiche un captcha, un bandeau vous prévient dans le navigateur distant : la vérification peut prendre un peu de temps à cause de la version avancée de détection de bots. Patientez sans recharger la page.</p>
-      <p class="small muted">Le bandeau est affiché par une extension installée dans le navigateur distant (voir GUIDE.md).</p>
     </div>
   </div>
 </section>
@@ -129,17 +132,25 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
     <div>
       <div class="card">
         <h2>Lien à distribuer</h2>
-        <p class="small muted">Les personnes s'inscrivent via ce lien, puis vous validez leur compte ci-dessous.</p>
+        <p class="small muted">Toute personne qui s'inscrit via ce lien est active tout de suite et reçoit un navigateur libre. Vous pouvez révoquer un compte à tout moment.</p>
         <div class="row"><input id="regLink" readonly><button id="copyLink" type="button" class="primary">Copier</button></div>
       </div>
       <div class="card">
-        <h2>Navigateur distant</h2>
-        <label for="sUrl">Adresse du port 6901 (https://…app.github.dev)</label>
-        <input id="sUrl" type="url" autocapitalize="none" placeholder="https://xxxx-6901.app.github.dev">
-        <label for="sPw">Mot de passe du navigateur (visible des comptes validés)</label>
-        <input id="sPw" type="text" autocapitalize="none">
-        <div class="row" style="margin-top:12px"><button class="primary" id="saveSettings" type="button">Enregistrer</button><span id="sMsg" class="small" style="align-self:center"></span></div>
-        <div class="notice">Pour que d'autres personnes puissent ouvrir le navigateur, le port doit être <b>public</b> (onglet Ports du codespace, clic droit, Port Visibility, Public), à refaire à chaque redémarrage. Quiconque a l'adresse peut alors atteindre l'écran de connexion : seul le mot de passe protège.</div>
+        <h2>Demandes de démarrage</h2>
+        <div id="reqs"></div>
+      </div>
+      <div class="card">
+        <h2>Navigateurs (emplacements)</h2>
+        <p class="small muted" id="slotInfo"></p>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>Adresse</th><th>Utilisé par</th><th></th></tr></thead>
+          <tbody id="slots"></tbody>
+        </table></div>
+        <label for="sUrl">Adresse d'un nouvel emplacement</label>
+        <input id="sUrl" type="url" autocapitalize="none" placeholder="https://nom-du-codespace-6901.app.github.dev">
+        <label for="sPw">Mot de passe de cet emplacement</label>
+        <input id="sPw" type="text" autocapitalize="none" autocomplete="off">
+        <div class="row" style="margin-top:12px"><button class="primary" id="addSlot" type="button">Ajouter</button><span id="sMsg" class="small" style="align-self:center"></span></div>
       </div>
     </div>
     <div class="card">
@@ -149,7 +160,8 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
         <thead><tr><th>E-mail</th><th>Statut</th><th></th></tr></thead>
         <tbody id="users"></tbody>
       </table></div>
-      <button id="reloadUsers" type="button" style="margin-top:12px">Actualiser</button>
+      <button id="reloadAll" type="button" style="margin-top:12px">Actualiser</button>
+      <div class="notice">Révoquer un compte libère son emplacement et bloque le portail, mais le mot de passe du navigateur reste valable. Pour fermer complètement l'accès, changez le mot de passe de l'emplacement (secret du codespace) et relancez les navigateurs.</div>
     </div>
   </div>
 </section>
@@ -160,14 +172,14 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
     <h2>Aide</h2>
     <h3>Comment ça marche</h3>
     <ol class="small">
-      <li>Vous vous inscrivez, l'administrateur valide votre compte.</li>
-      <li>Dans « Mon accès », vous ouvrez le navigateur distant dans un nouvel onglet.</li>
-      <li>Vous saisissez l'identifiant et le mot de passe du navigateur, puis vous naviguez.</li>
+      <li>Vous vous inscrivez : un navigateur libre vous est attribué automatiquement.</li>
+      <li>Dans « Mon accès », vous l'ouvrez dans un nouvel onglet.</li>
+      <li>Vous saisissez l'identifiant et le mot de passe affichés, puis vous naviguez.</li>
     </ol>
     <h3>Ça ne s'affiche pas ?</h3>
-    <p class="small">Une erreur 502 ou 404 signifie que le serveur du navigateur est éteint ou en train de démarrer. Le démarrage prend plusieurs minutes. Si ça persiste, prévenez l'administrateur.</p>
+    <p class="small">Une erreur 502 ou 404 signifie que le serveur est éteint ou en train de démarrer. Sur « Mon accès », le bandeau indique son état : s'il est éteint, cliquez sur « Démarrer le serveur ». Le démarrage prend environ 1 à 2 minutes, parfois plus, et la page se met à jour toute seule.</p>
     <h3>Pour l'administrateur</h3>
-    <p class="small">Le navigateur n'est disponible que tant que votre codespace est démarré (il s'arrête après 30 minutes d'inactivité). Après chaque démarrage : relancez Chromium si besoin, rendez le port 6901 public et vérifiez que l'adresse enregistrée dans l'administration est toujours la bonne.</p>
+    <p class="small">Le serveur s'éteint tout seul après une période d'inactivité et les utilisateurs le redémarrent eux-mêmes depuis le portail (fonction « codespace » de Supabase, voir GUIDE-autonome.md). Les demandes à l'administrateur n'apparaissent que si cette fonction n'est pas configurée ou ne répond pas.</p>
   </div>
 </section>
 
@@ -183,13 +195,11 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
 </main>
 </div>
 
+<script src="config.js"></script>
 <script>
 "use strict";
-/* ============ CONFIGURATION ============
-   Laissez vide pour le mode démo (comptes stockés dans ce navigateur seulement).
-   Pour de vrais comptes, collez l'URL du projet Supabase et la clé publique (anon / publishable).
-   Ne collez JAMAIS la clé « service_role » / « secret ». */
-const CONFIG = { SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };
+/* Les clés Supabase se règlent dans config.js (jamais ici). */
+const CONFIG = window.RB_CONFIG || { SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };
 const REAL = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY);
 
 /* Anti-récursion : le portail refuse de s'afficher dans un cadre */
@@ -205,7 +215,8 @@ const store = {
 };
 const TESTS = ["Tactile : toucher et glisser","Clavier virtuel : saisie dans un champ","Défilement d'une longue page","Zoom (pincer)","Lecture audio","Téléchargement d'un fichier","Ouverture de plusieurs onglets","Rotation portrait / paysage","Copier-coller","Bandeau d'avis sur une page avec captcha","Reprise après perte du Wi-Fi"];
 
-function setMsg(el, text, kind){ el.textContent = text || ""; el.style.color = kind === "ok" ? "var(--ok)" : "var(--bad)"; }
+function el(tag, text, cls){ const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; }
+function setMsg(node, text, kind){ node.textContent = text || ""; node.style.color = kind === "ok" ? "var(--ok)" : "var(--bad)"; }
 async function copy(text, btn){
   try{ await navigator.clipboard.writeText(text); const o = btn.textContent; btn.textContent = "Copié"; setTimeout(() => btn.textContent = o, 1500); }
   catch(e){ window.prompt("Copiez ce texte :", text); }
@@ -214,7 +225,11 @@ async function copy(text, btn){
 /* ============ API : Supabase (réel) ============ */
 async function http(path, o){
   o = o || {};
-  const h = { "apikey": CONFIG.SUPABASE_ANON_KEY, "Content-Type": "application/json", "Authorization": "Bearer " + (o.token || CONFIG.SUPABASE_ANON_KEY) };
+  const key = CONFIG.SUPABASE_ANON_KEY;
+  const h = { "apikey": key, "Content-Type": "application/json" };
+  /* Ancienne clé (JWT « eyJ… ») : envoyée aussi en Bearer. Nouvelle clé « sb_publishable_… » : uniquement dans apikey. */
+  const bearer = o.token || (key.indexOf("eyJ") === 0 ? key : null);
+  if (bearer) h.Authorization = "Bearer " + bearer;
   if (o.prefer) h.Prefer = o.prefer;
   const r = await fetch(CONFIG.SUPABASE_URL.replace(/\/$/, "") + path, { method: o.method || "GET", headers: h, body: o.body ? JSON.stringify(o.body) : undefined });
   const t = await r.text(); let d = null;
@@ -252,20 +267,27 @@ const realApi = {
   },
   async restore(){ if (!this.sess) return null; try{ await this.getProfile(); return this.sess.email; }catch(e){ this.save(null); return null; } },
   async signOut(){ try{ await http("/auth/v1/logout", { method: "POST", token: this.sess.access_token }); }catch(e){} this.save(null); },
-  async getProfile(){ const r = await this.call("/rest/v1/profiles?select=*&id=eq." + encodeURIComponent(this.sess.uid)); return r && r[0] || null; },
+  async getProfile(){ const r = await this.call("/rest/v1/profiles?select=*&id=eq." + encodeURIComponent(this.sess.uid)); return (r && r[0]) || null; },
   listProfiles(){ return this.call("/rest/v1/profiles?select=*&order=created_at.desc"); },
   setApproved(id, v){ return this.call("/rest/v1/profiles?id=eq." + encodeURIComponent(id), { method: "PATCH", body: { approved: v }, prefer: "return=minimal" }); },
-  async getSettings(){ const r = await this.call("/rest/v1/settings?select=key,value"); const o = {}; (r || []).forEach(x => o[x.key] = x.value); return o; },
-  saveSettings(o){
-    const rows = Object.keys(o).map(k => ({ key: k, value: o[k] }));
-    return this.call("/rest/v1/settings?on_conflict=key", { method: "POST", body: rows, prefer: "resolution=merge-duplicates,return=minimal" });
-  }
+  async claimSlot(){ const r = await this.call("/rest/v1/rpc/claim_slot", { method: "POST", body: {} }); return (r && r[0]) || null; },
+  listSlots(){ return this.call("/rest/v1/slots?select=*&order=id"); },
+  addSlot(url, password){ return this.call("/rest/v1/slots", { method: "POST", body: { url, password }, prefer: "return=minimal" }); },
+  deleteSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "DELETE", prefer: "return=minimal" }); },
+  requestStart(email){ return this.call("/rest/v1/start_requests?on_conflict=user_id", { method: "POST", body: { email }, prefer: "resolution=ignore-duplicates,return=minimal" }); },
+  async server(action){ const r = await this.call("/functions/v1/codespace", { method: "POST", body: { action } }); return r || {}; },
+  listRequests(){ return this.call("/rest/v1/start_requests?select=*&order=created_at"); },
+  clearRequest(uid){ return this.call("/rest/v1/start_requests?user_id=eq." + encodeURIComponent(uid), { method: "DELETE", prefer: "return=minimal" }); }
 };
 
 /* ============ API : démo (local) ============ */
 const demoApi = {
   users(){ return store.get("rb_demo_users", []); },
   put(u){ store.set("rb_demo_users", u); },
+  slots(){ return store.get("rb_demo_slots", []); },
+  putSlots(s){ store.set("rb_demo_slots", s); },
+  reqs(){ return store.get("rb_demo_reqs", []); },
+  putReqs(r){ store.set("rb_demo_reqs", r); },
   async hash(s){
     try{
       const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -276,7 +298,7 @@ const demoApi = {
     const us = this.users();
     if (us.some(u => u.email === email)) throw new Error("Cet e-mail est déjà inscrit.");
     const first = us.length === 0;
-    us.push({ id: String(Date.now()) + Math.random().toString(36).slice(2), email, h: await this.hash(pw), approved: first, is_admin: first, created_at: new Date().toISOString() });
+    us.push({ id: String(Date.now()) + Math.random().toString(36).slice(2), email, h: await this.hash(pw), approved: true, is_admin: first, created_at: new Date().toISOString() });
     this.put(us); store.set("rb_demo_sess", email); return { confirm: false };
   },
   async signIn(email, pw){
@@ -286,11 +308,35 @@ const demoApi = {
   },
   async restore(){ const e = store.get("rb_demo_sess", null); return e && this.users().some(u => u.email === e) ? e : null; },
   async signOut(){ store.set("rb_demo_sess", null); },
-  async getProfile(){ const e = store.get("rb_demo_sess", null); const u = this.users().find(x => x.email === e); return u ? { id: u.id, email: u.email, approved: u.approved, is_admin: u.is_admin, created_at: u.created_at } : null; },
-  async listProfiles(){ return this.users().map(u => ({ id: u.id, email: u.email, approved: u.approved, is_admin: u.is_admin, created_at: u.created_at })); },
-  async setApproved(id, v){ const us = this.users(); us.forEach(u => { if (u.id === id) u.approved = v; }); this.put(us); },
-  async getSettings(){ return store.get("rb_demo_settings", {}); },
-  async saveSettings(o){ store.set("rb_demo_settings", Object.assign(store.get("rb_demo_settings", {}), o)); }
+  pub(u){ return { id: u.id, email: u.email, approved: u.approved, is_admin: u.is_admin, created_at: u.created_at }; },
+  async getProfile(){ const e = store.get("rb_demo_sess", null); const u = this.users().find(x => x.email === e); return u ? this.pub(u) : null; },
+  async listProfiles(){ return this.users().map(u => this.pub(u)); },
+  async setApproved(id, v){
+    const us = this.users(); us.forEach(u => { if (u.id === id) u.approved = v; }); this.put(us);
+    if (!v){ const s = this.slots(); s.forEach(x => { if (x.user_id === id) x.user_id = null; }); this.putSlots(s); }
+  },
+  async claimSlot(){
+    const p = await this.getProfile(); if (!p) return null;
+    const s = this.slots(); let mine = s.find(x => x.user_id === p.id);
+    if (!mine){ mine = s.find(x => !x.user_id); if (mine){ mine.user_id = p.id; this.putSlots(s); } }
+    return mine ? { id: mine.id, url: mine.url, password: mine.password, user_id: mine.user_id } : null;
+  },
+  async listSlots(){ return this.slots(); },
+  async addSlot(url, password){ const s = this.slots(); s.push({ id: Date.now(), url, password, user_id: null }); this.putSlots(s); },
+  async deleteSlot(id){ this.putSlots(this.slots().filter(x => String(x.id) !== String(id))); },
+  async requestStart(email){
+    const p = await this.getProfile(); const r = this.reqs();
+    if (!r.some(x => x.user_id === p.id)){ r.push({ user_id: p.id, email, created_at: new Date().toISOString() }); this.putReqs(r); }
+  },
+  async server(action){
+    /* Simulation : éteint, puis démarrage en 8 secondes */
+    let t = store.get("rb_demo_srv", 0);
+    if (action === "start" && !t){ t = Date.now(); store.set("rb_demo_srv", t); }
+    if (!t) return { state: "Shutdown" };
+    return { state: (Date.now() - t < 8000) ? "Starting" : "Available" };
+  },
+  async listRequests(){ return this.reqs(); },
+  async clearRequest(uid){ this.putReqs(this.reqs().filter(x => x.user_id !== uid)); }
 };
 const api = REAL ? realApi : demoApi;
 
@@ -337,6 +383,7 @@ $("authForm").addEventListener("submit", async e => {
 function show(v){
   ["home","admin","help","tests"].forEach(n => $("v-" + n).classList.toggle("hidden", n !== v));
   document.querySelectorAll("#nav button").forEach(b => b.setAttribute("aria-current", b.dataset.view === v));
+  if (v !== "home") stopSrv();
   if (v === "home") renderHome();
   if (v === "admin") renderAdmin();
 }
@@ -356,74 +403,151 @@ $("logout").addEventListener("click", async () => {
 });
 
 async function renderHome(){
-  try{ me = await api.getProfile() || me; }catch(e){}
+  try{ me = (await api.getProfile()) || me; }catch(e){}
   const ok = me.approved || me.is_admin;
-  $("pending").classList.toggle("hidden", ok);
+  $("revoked").classList.toggle("hidden", ok);
   $("ready").classList.toggle("hidden", !ok);
   if (!ok) return;
-  let s = {};
-  try{ s = await api.getSettings(); }catch(e){}
-  const url = s.chromium_url || "";
-  $("configured").classList.toggle("hidden", !url);
-  $("notConfigured").classList.toggle("hidden", !!url);
-  if (url){
-    $("openLink").href = url;
-    $("pwRow").classList.toggle("hidden", !s.chromium_password);
-    $("pw").value = s.chromium_password || "";
-  }
+  let slot = null, err = "";
+  try{ slot = await api.claimSlot(); }catch(e){ err = e.message; }
+  $("mine").classList.toggle("hidden", !slot);
+  $("full").classList.toggle("hidden", !!slot);
+  $("full").textContent = err ? "Erreur : " + err : "Aucun navigateur n'est libre pour le moment. Réessayez plus tard ou prévenez l'administrateur.";
+  if (slot){ $("openLink").href = slot.url; $("pw").value = slot.password; }
+  startPolling();
 }
-$("refresh").addEventListener("click", renderHome);
 $("showPw").addEventListener("click", () => {
   const p = $("pw"); const hide = p.type === "password";
   p.type = hide ? "text" : "password"; $("showPw").textContent = hide ? "Masquer" : "Afficher";
 });
 $("copyPw").addEventListener("click", () => copy($("pw").value, $("copyPw")));
+/* ---- État et démarrage automatique du serveur ---- */
+const BUSY = ["Created","Queued","Provisioning","Awaiting","Starting","Rebuilding","Updating"];
+let srvTimer = null, srvMode = "auto";
+function startedAt(){ try{ return +sessionStorage.getItem("rb_started") || 0; }catch(e){ return 0; } }
+function stopSrv(){ if (srvTimer){ clearInterval(srvTimer); srvTimer = null; } }
+function startPolling(){ stopSrv(); checkServer(); srvTimer = setInterval(checkServer, 4000); }
+function setSrv(title, text, showBtn, label){
+  $("srvTitle").textContent = title; $("srvText").textContent = text;
+  $("askStart").classList.toggle("hidden", !showBtn);
+  if (label) $("askStart").textContent = label;
+}
+async function checkServer(){
+  let st = "";
+  try{ st = (await api.server("status")).state || ""; }
+  catch(e){
+    /* Démarrage automatique non configuré : repli sur une demande à l'administrateur */
+    srvMode = "request"; stopSrv();
+    setSrv("Serveur : état inconnu", "Si votre navigateur ne s'ouvre pas (erreur 502 ou 404), il est probablement éteint. Prévenez l'administrateur.", true, "Prévenir l'administrateur");
+    return;
+  }
+  srvMode = "auto";
+  if (st === "Available"){
+    const left = 120 - Math.floor((Date.now() - startedAt()) / 1000);
+    if (startedAt() && left > 0){
+      setSrv("Serveur démarré : préparation de votre navigateur", "Encore environ " + left + " secondes, puis ouvrez-le.", false);
+      return;
+    }
+    setSrv("Serveur en marche", "Votre navigateur est disponible. Si une erreur 502 ou 404 s'affiche, attendez une minute et rechargez la page.", false);
+    stopSrv();
+  } else if (st === "Shutdown"){
+    stopSrv();
+    setSrv("Serveur éteint", "Il s'éteint quand il n'est pas utilisé. Cliquez pour le démarrer : cela prend environ 1 à 2 minutes, parfois plus.", true, "Démarrer le serveur");
+  } else if (BUSY.indexOf(st) >= 0){
+    setSrv("Démarrage en cours…", "Environ 1 à 2 minutes, parfois plus. Cette page se met à jour toute seule.", false);
+  } else if (st === "ShuttingDown"){
+    setSrv("Arrêt en cours", "Le serveur s'éteint. Cette page se met à jour toute seule, vous pourrez ensuite le redémarrer.", false);
+  } else {
+    srvMode = "request"; stopSrv();
+    setSrv("Serveur indisponible", "Prévenez l'administrateur.", true, "Prévenir l'administrateur");
+  }
+}
+$("askStart").addEventListener("click", async () => {
+  const b = $("askStart"); b.disabled = true; setMsg($("askMsg"), "");
+  try{
+    if (srvMode === "request"){
+      await api.requestStart(me.email);
+      setMsg($("askMsg"), "L'administrateur est prévenu.", "ok");
+    } else {
+      const r = await api.server("start");
+      if (r.state !== "Available"){ try{ sessionStorage.setItem("rb_started", String(Date.now())); }catch(e){} }
+      startPolling();
+    }
+  }catch(e){ setMsg($("askMsg"), "Erreur : " + e.message); }
+  setTimeout(() => { b.disabled = false; }, 15000);
+});
 
 /* ---- Administration ---- */
 async function renderAdmin(){
   if (!me || !me.is_admin) return;
-  $("regLink").value = location.href.split("#")[0] + "#inscription";
-  try{
-    const s = await api.getSettings();
-    $("sUrl").value = s.chromium_url || ""; $("sPw").value = s.chromium_password || "";
-  }catch(e){}
-  loadUsers();
+  $("regLink").value = location.href.split("#")[0].split("?")[0] + "#inscription";
+  loadAdmin();
 }
-async function loadUsers(){
+async function loadAdmin(){
+  let profiles = [], slots = [], reqs = [];
+  try{ [profiles, slots, reqs] = await Promise.all([api.listProfiles(), api.listSlots(), api.listRequests()]); }
+  catch(e){ $("countInfo").textContent = "Impossible de charger les données : " + e.message; return; }
+  const byId = {}; profiles.forEach(p => { byId[p.id] = p.email; });
+  renderUsers(profiles); renderSlots(slots, byId); renderRequests(reqs);
+}
+function renderUsers(list){
   const body = $("users"); body.textContent = "";
-  let list = [];
-  try{ list = await api.listProfiles(); }catch(e){ $("countInfo").textContent = "Impossible de charger les comptes : " + e.message; return; }
-  const pending = list.filter(u => !u.approved).length;
-  $("countInfo").textContent = list.length + " compte(s), " + pending + " en attente.";
+  const revoked = list.filter(u => !u.approved).length;
+  $("countInfo").textContent = list.length + " compte(s), " + revoked + " révoqué(s).";
   list.forEach(u => {
-    const tr = document.createElement("tr");
-    const td1 = document.createElement("td"); td1.textContent = u.email;
-    const td2 = document.createElement("td"); const b = document.createElement("span");
-    b.className = "badge " + (u.approved ? "ok" : "warn"); b.textContent = u.is_admin ? "Admin" : (u.approved ? "Validé" : "En attente");
-    td2.appendChild(b);
-    const td3 = document.createElement("td");
+    const tr = el("tr");
+    const td2 = el("td"); td2.appendChild(el("span", u.is_admin ? "Admin" : (u.approved ? "Actif" : "Révoqué"), "badge " + (u.approved ? "ok" : "bad")));
+    const td3 = el("td");
     if (!u.is_admin){
-      const btn = document.createElement("button");
-      btn.textContent = u.approved ? "Révoquer" : "Valider";
-      if (!u.approved) btn.className = "primary";
+      const btn = el("button", u.approved ? "Révoquer" : "Rétablir", u.approved ? "danger" : "primary");
       btn.addEventListener("click", async () => {
+        if (u.approved && !confirm("Révoquer " + u.email + " ?")) return;
         btn.disabled = true;
         try{ await api.setApproved(u.id, !u.approved); }catch(e){ alert("Erreur : " + e.message); }
-        loadUsers();
+        loadAdmin();
       });
       td3.appendChild(btn);
     }
-    tr.append(td1, td2, td3); body.appendChild(tr);
+    tr.append(el("td", u.email), td2, td3); body.appendChild(tr);
   });
 }
-$("reloadUsers").addEventListener("click", loadUsers);
+function renderSlots(slots, byId){
+  const body = $("slots"); body.textContent = "";
+  const free = slots.filter(s => !s.user_id).length;
+  $("slotInfo").textContent = slots.length + " emplacement(s), " + free + " libre(s). Un emplacement = un navigateur isolé = une personne.";
+  slots.forEach(s => {
+    const tr = el("tr");
+    const del = el("button", "Supprimer", "danger");
+    del.addEventListener("click", async () => {
+      if (!confirm("Supprimer cet emplacement ?")) return;
+      try{ await api.deleteSlot(s.id); }catch(e){ alert("Erreur : " + e.message); }
+      loadAdmin();
+    });
+    const td3 = el("td"); td3.appendChild(del);
+    tr.append(el("td", s.url, "url"), el("td", s.user_id ? (byId[s.user_id] || "(compte)") : "Libre"), td3);
+    body.appendChild(tr);
+  });
+}
+function renderRequests(reqs){
+  const box = $("reqs"); box.textContent = "";
+  if (!reqs.length){ box.appendChild(el("p", "Aucune demande en attente.", "small muted")); return; }
+  reqs.forEach(r => {
+    const row = el("div", null, "row"); row.style.cssText = "align-items:center;margin-bottom:8px";
+    const t = el("span", r.email + " : " + new Date(r.created_at).toLocaleString("fr-FR")); t.style.flex = "1";
+    const b = el("button", "Traité", "primary");
+    b.addEventListener("click", async () => { b.disabled = true; try{ await api.clearRequest(r.user_id); }catch(e){ alert("Erreur : " + e.message); } loadAdmin(); });
+    row.append(t, b); box.appendChild(row);
+  });
+}
+$("reloadAll").addEventListener("click", loadAdmin);
 $("copyLink").addEventListener("click", () => copy($("regLink").value, $("copyLink")));
-$("saveSettings").addEventListener("click", async () => {
-  const url = $("sUrl").value.trim();
-  if (url && !/^https:\/\//i.test(url)){ setMsg($("sMsg"), "L'adresse doit commencer par https://"); return; }
+$("addSlot").addEventListener("click", async () => {
+  const url = $("sUrl").value.trim(), pw = $("sPw").value.trim();
+  if (!/^https:\/\//i.test(url)){ setMsg($("sMsg"), "L'adresse doit commencer par https://"); return; }
+  if (!pw){ setMsg($("sMsg"), "Mot de passe requis."); return; }
   try{
-    await api.saveSettings({ chromium_url: url, chromium_password: $("sPw").value });
-    setMsg($("sMsg"), "Enregistré.", "ok");
+    await api.addSlot(url.replace(/\/+$/, ""), pw);
+    $("sUrl").value = ""; $("sPw").value = ""; setMsg($("sMsg"), "Ajouté.", "ok"); loadAdmin();
   }catch(e){ setMsg($("sMsg"), "Erreur : " + e.message); }
   setTimeout(() => setMsg($("sMsg"), ""), 3000);
 });
@@ -432,10 +556,9 @@ $("saveSettings").addEventListener("click", async () => {
 (function(){
   const done = store.get("rb_checks", {}), ul = $("checks");
   TESTS.forEach((t, i) => {
-    const li = document.createElement("li"), cb = document.createElement("input");
-    cb.type = "checkbox"; cb.id = "c" + i; cb.checked = !!done[i];
+    const li = el("li"), cb = el("input"); cb.type = "checkbox"; cb.id = "c" + i; cb.checked = !!done[i];
     cb.addEventListener("change", () => { done[i] = cb.checked; store.set("rb_checks", done); });
-    const lb = document.createElement("label"); lb.htmlFor = cb.id; lb.textContent = t; lb.style.cssText = "margin:0;font-weight:400";
+    const lb = el("label", t); lb.htmlFor = cb.id; lb.style.cssText = "margin:0;font-weight:400";
     li.append(cb, lb); ul.appendChild(li);
   });
 })();
