@@ -161,7 +161,7 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
         <tbody id="users"></tbody>
       </table></div>
       <button id="reloadAll" type="button" style="margin-top:12px">Actualiser</button>
-      <div class="notice">Révoquer un compte libère son emplacement et bloque le portail, mais le mot de passe du navigateur reste valable. Pour fermer complètement l'accès, changez le mot de passe de l'emplacement (secret du codespace) et relancez les navigateurs.</div>
+      <div class="notice">Révoquer un compte bloque l'accès au portail mais garde son emplacement réservé : les données de la personne y restent conservées. Pour réattribuer l'emplacement, videz d'abord son profil dans le codespace (<code>bash .devcontainer/wipe.sh N</code>), puis cliquez sur « Libérer ». Le mot de passe du navigateur reste valable : pour couper complètement l'accès, changez le secret VNC_PW_N et relancez cet emplacement.</div>
     </div>
   </div>
 </section>
@@ -273,6 +273,7 @@ const realApi = {
   async claimSlot(){ const r = await this.call("/rest/v1/rpc/claim_slot", { method: "POST", body: {} }); return (r && r[0]) || null; },
   listSlots(){ return this.call("/rest/v1/slots?select=*&order=id"); },
   addSlot(url, password){ return this.call("/rest/v1/slots", { method: "POST", body: { url, password }, prefer: "return=minimal" }); },
+  releaseSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "PATCH", body: { user_id: null }, prefer: "return=minimal" }); },
   deleteSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "DELETE", prefer: "return=minimal" }); },
   requestStart(email){ return this.call("/rest/v1/start_requests?on_conflict=user_id", { method: "POST", body: { email }, prefer: "resolution=ignore-duplicates,return=minimal" }); },
   async server(action){ const r = await this.call("/functions/v1/codespace", { method: "POST", body: { action } }); return r || {}; },
@@ -313,7 +314,6 @@ const demoApi = {
   async listProfiles(){ return this.users().map(u => this.pub(u)); },
   async setApproved(id, v){
     const us = this.users(); us.forEach(u => { if (u.id === id) u.approved = v; }); this.put(us);
-    if (!v){ const s = this.slots(); s.forEach(x => { if (x.user_id === id) x.user_id = null; }); this.putSlots(s); }
   },
   async claimSlot(){
     const p = await this.getProfile(); if (!p) return null;
@@ -323,6 +323,7 @@ const demoApi = {
   },
   async listSlots(){ return this.slots(); },
   async addSlot(url, password){ const s = this.slots(); s.push({ id: Date.now(), url, password, user_id: null }); this.putSlots(s); },
+  async releaseSlot(id){ const s = this.slots(); s.forEach(x => { if (String(x.id) === String(id)) x.user_id = null; }); this.putSlots(s); },
   async deleteSlot(id){ this.putSlots(this.slots().filter(x => String(x.id) !== String(id))); },
   async requestStart(email){
     const p = await this.getProfile(); const r = this.reqs();
@@ -523,7 +524,17 @@ function renderSlots(slots, byId){
       try{ await api.deleteSlot(s.id); }catch(e){ alert("Erreur : " + e.message); }
       loadAdmin();
     });
-    const td3 = el("td"); td3.appendChild(del);
+    const td3 = el("td");
+    if (s.user_id){
+      const rel = el("button", "Libérer");
+      rel.addEventListener("click", async () => {
+        if (!confirm("Avez-vous VIDÉ le profil de cet emplacement ? (dans le codespace : bash .devcontainer/wipe.sh 1 pour le port 6901, 2 pour le port 6902...)\n\nSinon la prochaine personne verrait les données de la précédente.\n\nLibérer quand même ?")) return;
+        try{ await api.releaseSlot(s.id); }catch(e){ alert("Erreur : " + e.message); }
+        loadAdmin();
+      });
+      td3.appendChild(rel);
+    }
+    td3.appendChild(del);
     tr.append(el("td", s.url, "url"), el("td", s.user_id ? (byId[s.user_id] || "(compte)") : "Libre"), td3);
     body.appendChild(tr);
   });
