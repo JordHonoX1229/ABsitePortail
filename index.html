@@ -105,11 +105,23 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
       <div class="card hidden" id="ready">
         <h2>Mon navigateur distant</h2>
         <div id="full" class="notice hidden"></div>
+        <div id="idle" class="hidden">
+          <button class="primary big" id="launch" type="button">Démarrer mon navigateur</button>
+          <p class="small muted" style="margin-top:12px">Un navigateur neuf vous est réservé, avec une connexion automatique : rien à saisir. Quand vous avez fini, cliquez sur « Fermer ma session » (ou fermez la fenêtre : il est effacé quelques minutes plus tard). Historique, cookies et connexions sont alors supprimés et le navigateur est libéré pour quelqu'un d'autre.</p>
+        </div>
+        <div id="prep" class="notice hidden">
+          <b id="prepTitle"></b>
+          <p class="small" id="prepText" style="margin:6px 0 0"></p>
+        </div>
         <div id="mine" class="hidden">
-          <a class="btn primary big" id="openLink" target="_blank" rel="noopener">Ouvrir mon navigateur</a>
-          <p class="small muted" style="margin-top:12px">Il s'ouvre dans un nouvel onglet. Identifiant : <b>kasm_user</b>. Ce navigateur est le vôtre : personne d'autre n'y est connecté.</p>
-          <label for="pw">Mot de passe de mon navigateur</label>
-          <div class="row"><input id="pw" type="password" readonly><button id="showPw" type="button">Afficher</button><button id="copyPw" type="button">Copier</button></div>
+          <a class="btn primary big" id="openLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Ouvrir mon navigateur</a>
+          <p class="small muted" style="margin-top:12px">Il s'ouvre dans un nouvel onglet, connecté automatiquement. Ce navigateur est le vôtre pour cette session : personne d'autre n'y est connecté.</p>
+          <details style="margin:12px 0">
+            <summary class="small">Si on vous demande un identifiant</summary>
+            <p class="small muted" style="margin:8px 0 0">Identifiant : <b>kasm_user</b>. Le mot de passe est valable pour cette session seulement.</p>
+            <div class="row" style="margin-top:8px"><input id="pw" type="password" readonly><button id="showPw" type="button">Afficher</button><button id="copyPw" type="button">Copier</button></div>
+          </details>
+          <button id="closeSess" type="button" class="danger">Fermer ma session</button>
         </div>
         <div class="notice" id="srv">
           <b id="srvTitle">Serveur : vérification…</b>
@@ -148,8 +160,6 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
         </table></div>
         <label for="sUrl">Adresse d'un nouvel emplacement</label>
         <input id="sUrl" type="url" autocapitalize="none" placeholder="https://nom-du-codespace-6901.app.github.dev">
-        <label for="sPw">Mot de passe de cet emplacement</label>
-        <input id="sPw" type="text" autocapitalize="none" autocomplete="off">
         <div class="row" style="margin-top:12px"><button class="primary" id="addSlot" type="button">Ajouter</button><span id="sMsg" class="small" style="align-self:center"></span></div>
       </div>
     </div>
@@ -161,7 +171,7 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
         <tbody id="users"></tbody>
       </table></div>
       <button id="reloadAll" type="button" style="margin-top:12px">Actualiser</button>
-      <div class="notice">Révoquer un compte bloque l'accès au portail mais garde son emplacement réservé : les données de la personne y restent conservées. Pour réattribuer l'emplacement, videz d'abord son profil dans le codespace (<code>bash .devcontainer/wipe.sh N</code>), puis cliquez sur « Libérer ». Le mot de passe du navigateur reste valable : pour couper complètement l'accès, changez le secret VNC_PW_N et relancez cet emplacement.</div>
+      <div class="notice">Révoquer un compte ferme sa session : son navigateur est effacé et l'emplacement libéré. Le mot de passe d'une session est généré à chaque ouverture et ne sert qu'une fois : aucune donnée n'est conservée d'une session à l'autre. L'effacement est fait par le surveillant du codespace ; si le serveur est éteint, il a lieu à son prochain démarrage.</div>
     </div>
   </div>
 </section>
@@ -172,9 +182,9 @@ ul.check input{width:22px;min-height:22px;margin-top:3px}
     <h2>Aide</h2>
     <h3>Comment ça marche</h3>
     <ol class="small">
-      <li>Vous vous inscrivez : un navigateur libre vous est attribué automatiquement.</li>
-      <li>Dans « Mon accès », vous l'ouvrez dans un nouvel onglet.</li>
-      <li>Vous saisissez l'identifiant et le mot de passe affichés, puis vous naviguez.</li>
+      <li>Vous vous inscrivez, puis vous cliquez sur « Démarrer mon navigateur » : un navigateur neuf vous est réservé.</li>
+      <li>Au bout d'environ 1 à 2 minutes, « Ouvrir mon navigateur » l'ouvre dans un nouvel onglet, déjà connecté.</li>
+      <li>Quand vous avez fini, cliquez sur « Fermer ma session ». Historique, cookies et connexions sont effacés, et le navigateur est libéré pour quelqu'un d'autre.</li>
     </ol>
     <h3>Ça ne s'affiche pas ?</h3>
     <p class="small">Une erreur 502 ou 404 signifie que le serveur est éteint ou en train de démarrer. Sur « Mon accès », le bandeau indique son état : s'il est éteint, cliquez sur « Démarrer le serveur ». Le démarrage prend environ 1 à 2 minutes, parfois plus, et la page se met à jour toute seule.</p>
@@ -271,9 +281,11 @@ const realApi = {
   listProfiles(){ return this.call("/rest/v1/profiles?select=*&order=created_at.desc"); },
   setApproved(id, v){ return this.call("/rest/v1/profiles?id=eq." + encodeURIComponent(id), { method: "PATCH", body: { approved: v }, prefer: "return=minimal" }); },
   async claimSlot(){ const r = await this.call("/rest/v1/rpc/claim_slot", { method: "POST", body: {} }); return (r && r[0]) || null; },
+  async mySlot(){ const r = await this.call("/rest/v1/slots?select=*&user_id=eq." + encodeURIComponent(this.sess.uid)); return (r && r[0]) || null; },
+  closeSlot(){ return this.call("/rest/v1/rpc/close_my_slot", { method: "POST", body: {} }); },
   listSlots(){ return this.call("/rest/v1/slots?select=*&order=id"); },
-  addSlot(url, password){ return this.call("/rest/v1/slots", { method: "POST", body: { url, password }, prefer: "return=minimal" }); },
-  releaseSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "PATCH", body: { user_id: null }, prefer: "return=minimal" }); },
+  addSlot(url){ return this.call("/rest/v1/slots", { method: "POST", body: { url }, prefer: "return=minimal" }); },
+  releaseSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "PATCH", body: { closing: true, ready: false }, prefer: "return=minimal" }); },
   deleteSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "DELETE", prefer: "return=minimal" }); },
   requestStart(email){ return this.call("/rest/v1/start_requests?on_conflict=user_id", { method: "POST", body: { email }, prefer: "resolution=ignore-duplicates,return=minimal" }); },
   async server(action){ const r = await this.call("/functions/v1/codespace", { method: "POST", body: { action } }); return r || {}; },
@@ -318,12 +330,31 @@ const demoApi = {
   async claimSlot(){
     const p = await this.getProfile(); if (!p) return null;
     const s = this.slots(); let mine = s.find(x => x.user_id === p.id);
-    if (!mine){ mine = s.find(x => !x.user_id); if (mine){ mine.user_id = p.id; this.putSlots(s); } }
-    return mine ? { id: mine.id, url: mine.url, password: mine.password, user_id: mine.user_id } : null;
+    if (!mine){
+      mine = s.find(x => !x.user_id && !x.closing);
+      if (mine){
+        mine.user_id = p.id; mine.ready = false; mine.closing = false; mine.ready_at = Date.now() + 8000;
+        mine.password = Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
+        this.putSlots(s);
+      }
+    }
+    return mine || null;
+  },
+  async mySlot(){
+    const p = await this.getProfile(); if (!p) return null;
+    const s = this.slots(); const mine = s.find(x => x.user_id === p.id);
+    if (!mine) return null;
+    if (!mine.ready && mine.ready_at && Date.now() >= mine.ready_at){ mine.ready = true; this.putSlots(s); }
+    return mine;
+  },
+  async closeSlot(){
+    const p = await this.getProfile(); const s = this.slots();
+    s.forEach(x => { if (x.user_id === p.id){ x.user_id = null; x.password = null; x.ready = false; x.closing = false; } });
+    this.putSlots(s);
   },
   async listSlots(){ return this.slots(); },
-  async addSlot(url, password){ const s = this.slots(); s.push({ id: Date.now(), url, password, user_id: null }); this.putSlots(s); },
-  async releaseSlot(id){ const s = this.slots(); s.forEach(x => { if (String(x.id) === String(id)) x.user_id = null; }); this.putSlots(s); },
+  async addSlot(url){ const s = this.slots(); s.push({ id: Date.now(), url, password: null, user_id: null, ready: false, closing: false }); this.putSlots(s); },
+  async releaseSlot(id){ const s = this.slots(); s.forEach(x => { if (String(x.id) === String(id)){ x.user_id = null; x.password = null; x.ready = false; x.closing = false; } }); this.putSlots(s); },
   async deleteSlot(id){ this.putSlots(this.slots().filter(x => String(x.id) !== String(id))); },
   async requestStart(email){
     const p = await this.getProfile(); const r = this.reqs();
@@ -384,7 +415,7 @@ $("authForm").addEventListener("submit", async e => {
 function show(v){
   ["home","admin","help","tests"].forEach(n => $("v-" + n).classList.toggle("hidden", n !== v));
   document.querySelectorAll("#nav button").forEach(b => b.setAttribute("aria-current", b.dataset.view === v));
-  if (v !== "home") stopSrv();
+  if (v !== "home"){ stopSrv(); stopSlot(); }
   if (v === "home") renderHome();
   if (v === "admin") renderAdmin();
 }
@@ -409,12 +440,7 @@ async function renderHome(){
   $("revoked").classList.toggle("hidden", ok);
   $("ready").classList.toggle("hidden", !ok);
   if (!ok) return;
-  let slot = null, err = "";
-  try{ slot = await api.claimSlot(); }catch(e){ err = e.message; }
-  $("mine").classList.toggle("hidden", !slot);
-  $("full").classList.toggle("hidden", !!slot);
-  $("full").textContent = err ? "Erreur : " + err : "Aucun navigateur n'est libre pour le moment. Réessayez plus tard ou prévenez l'administrateur.";
-  if (slot){ $("openLink").href = slot.url; $("pw").value = slot.password; }
+  await refreshSlot();
   startPolling();
 }
 $("showPw").addEventListener("click", () => {
@@ -422,6 +448,50 @@ $("showPw").addEventListener("click", () => {
   p.type = hide ? "text" : "password"; $("showPw").textContent = hide ? "Masquer" : "Afficher";
 });
 $("copyPw").addEventListener("click", () => copy($("pw").value, $("copyPw")));
+
+/* ---- Mon navigateur : réservation, préparation, fermeture ---- */
+let slotTimer = null;
+function stopSlot(){ if (slotTimer){ clearInterval(slotTimer); slotTimer = null; } }
+function showSlotPanel(which){ ["idle","prep","mine"].forEach(k => $(k).classList.toggle("hidden", k !== which)); }
+async function refreshSlot(){
+  let slot = null;
+  try{ slot = await api.mySlot(); }
+  catch(e){ $("full").classList.remove("hidden"); $("full").textContent = "Erreur : " + e.message; return; }
+  if (!slot){ stopSlot(); showSlotPanel("idle"); return; }
+  if (slot.closing){
+    $("prepTitle").textContent = "Fermeture en cours…";
+    $("prepText").textContent = "Votre navigateur est effacé (historique, cookies, connexions). Cela prend quelques secondes à une minute.";
+    showSlotPanel("prep");
+  } else if (!slot.ready){
+    $("prepTitle").textContent = "Préparation de votre navigateur…";
+    $("prepText").textContent = "Environ 1 à 2 minutes, parfois plus. Cette page se met à jour toute seule. Si le serveur est éteint, démarrez-le avec le bandeau ci-dessous.";
+    showSlotPanel("prep");
+  } else {
+    let href = slot.url;
+    try{ const u = new URL(slot.url); u.username = "kasm_user"; u.password = slot.password || ""; href = u.href; }catch(e){}
+    $("openLink").href = href;
+    $("pw").value = slot.password || "";
+    showSlotPanel("mine");
+    stopSlot();
+    return;
+  }
+  if (!slotTimer) slotTimer = setInterval(refreshSlot, 4000);
+}
+$("launch").addEventListener("click", async () => {
+  const b = $("launch"); b.disabled = true; $("full").classList.add("hidden");
+  try{
+    const s = await api.claimSlot();
+    if (!s){ $("full").classList.remove("hidden"); $("full").textContent = "Aucun navigateur n'est libre pour le moment. Réessayez dans quelques minutes."; }
+    else await refreshSlot();
+  }catch(e){ $("full").classList.remove("hidden"); $("full").textContent = "Erreur : " + e.message; }
+  b.disabled = false;
+});
+$("closeSess").addEventListener("click", async () => {
+  if (!confirm("Fermer votre session ? Votre navigateur sera effacé : historique, cookies et connexions seront supprimés.")) return;
+  try{ await api.closeSlot(); }catch(e){ alert("Erreur : " + e.message); }
+  refreshSlot();
+});
+
 /* ---- État et démarrage automatique du serveur ---- */
 const BUSY = ["Created","Queued","Provisioning","Awaiting","Starting","Rebuilding","Updating"];
 let srvTimer = null, srvMode = "auto";
@@ -515,7 +585,7 @@ function renderUsers(list){
 function renderSlots(slots, byId){
   const body = $("slots"); body.textContent = "";
   const free = slots.filter(s => !s.user_id).length;
-  $("slotInfo").textContent = slots.length + " emplacement(s), " + free + " libre(s). Un emplacement = un navigateur isolé = une personne.";
+  $("slotInfo").textContent = slots.length + " emplacement(s), " + free + " libre(s). Un emplacement = un navigateur isolé, attribué à la demande et effacé à la fermeture.";
   slots.forEach(s => {
     const tr = el("tr");
     const del = el("button", "Supprimer", "danger");
@@ -528,7 +598,7 @@ function renderSlots(slots, byId){
     if (s.user_id){
       const rel = el("button", "Libérer");
       rel.addEventListener("click", async () => {
-        if (!confirm("Avez-vous VIDÉ le profil de cet emplacement ? (dans le codespace : bash .devcontainer/wipe.sh 1 pour le port 6901, 2 pour le port 6902...)\n\nSinon la prochaine personne verrait les données de la précédente.\n\nLibérer quand même ?")) return;
+        if (!confirm("Fermer la session de cette personne ? Son navigateur sera effacé et l'emplacement libéré dans les secondes qui suivent (ou au prochain démarrage du serveur s'il est éteint).")) return;
         try{ await api.releaseSlot(s.id); }catch(e){ alert("Erreur : " + e.message); }
         loadAdmin();
       });
@@ -553,12 +623,12 @@ function renderRequests(reqs){
 $("reloadAll").addEventListener("click", loadAdmin);
 $("copyLink").addEventListener("click", () => copy($("regLink").value, $("copyLink")));
 $("addSlot").addEventListener("click", async () => {
-  const url = $("sUrl").value.trim(), pw = $("sPw").value.trim();
+  const url = $("sUrl").value.trim();
   if (!/^https:\/\//i.test(url)){ setMsg($("sMsg"), "L'adresse doit commencer par https://"); return; }
-  if (!pw){ setMsg($("sMsg"), "Mot de passe requis."); return; }
+  if (!/-69\d\d\./.test(url)){ setMsg($("sMsg"), "L'adresse doit contenir le port : ...-6901.app.github.dev"); return; }
   try{
-    await api.addSlot(url.replace(/\/+$/, ""), pw);
-    $("sUrl").value = ""; $("sPw").value = ""; setMsg($("sMsg"), "Ajouté.", "ok"); loadAdmin();
+    await api.addSlot(url.replace(/\/+$/, ""));
+    $("sUrl").value = ""; setMsg($("sMsg"), "Ajouté.", "ok"); loadAdmin();
   }catch(e){ setMsg($("sMsg"), "Erreur : " + e.message); }
   setTimeout(() => setMsg($("sMsg"), ""), 3000);
 });
