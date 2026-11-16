@@ -122,9 +122,13 @@ body{padding-bottom:64px}
       <div class="card hidden" id="ready">
         <h2>Mon navigateur distant</h2>
         <div id="full" class="notice hidden"></div>
+        <div id="bkMsg" class="notice hidden" role="status"></div>
         <div id="idle" class="hidden">
           <button class="primary big" id="launch" type="button">Démarrer mon navigateur</button>
-          <p class="small muted" style="margin-top:12px">Un navigateur neuf vous est réservé, avec une connexion automatique : rien à saisir. Quand vous avez fini, cliquez sur « Fermer ma session » (ou fermez la fenêtre : il est effacé quelques minutes plus tard). Historique, cookies et connexions sont alors supprimés et le navigateur est libéré pour quelqu'un d'autre.</p>
+          <button class="big hidden" id="launchRestore" type="button" style="margin-top:10px">Restaurer ma sauvegarde</button>
+          <p class="small muted hidden" id="bkInfo" style="margin:8px 0 0"></p>
+          <p class="small muted" style="margin-top:12px">Un navigateur neuf vous est réservé. Quand vous avez fini, fermez votre session : historique, cookies et connexions sont supprimés du serveur et le navigateur est libéré pour quelqu'un d'autre. Si vous fermez seulement la fenêtre, il est effacé quelques minutes plus tard. En option, « Fermer et sauvegarder » garde vos connexions, chiffrées, sur cet appareil uniquement, pour les retrouver à la prochaine session.</p>
+          <button id="bkDelete" type="button" class="hidden">Supprimer la sauvegarde de cet appareil</button>
         </div>
         <div id="prep" class="notice hidden">
           <b id="prepTitle"></b>
@@ -138,6 +142,7 @@ body{padding-bottom:64px}
             <p class="small muted" style="margin:8px 0 0">Identifiant : <b>kasm_user</b>. Le mot de passe est valable pour cette session seulement.</p>
             <div class="row" style="margin-top:8px"><input id="pw" type="password" readonly><button id="showPw" type="button">Afficher</button><button id="copyPw" type="button">Copier</button></div>
           </details>
+          <button id="closeSave" type="button" class="primary hidden" style="margin-right:8px;margin-bottom:8px">Fermer et sauvegarder sur cet appareil</button>
           <button id="closeSess" type="button" class="danger">Fermer ma session</button>
         </div>
         <div class="notice" id="srv">
@@ -238,7 +243,7 @@ body{padding-bottom:64px}
     <p class="small muted" id="cguIntro" style="margin:0 0 8px">Merci de lire ces conditions jusqu'au bout avant de continuer.</p>
     <div id="cguBody" tabindex="0">
       <h3 id="legal-cgu">1. Conditions générales d'utilisation</h3>
-      <p><b>Version du <span data-f="date"></span>.</b> Ce document régit l'utilisation du service « Remote Browser » (le « Service »), édité par <b data-f="Jordan Honorat"></b> (l'« Éditeur »). En créant un compte ou en utilisant le Service, vous déclarez avoir lu et accepté ces conditions. Si vous les refusez, n'utilisez pas le Service.</p>
+      <p><b>Version du <span data-f="date"></span>.</b> Ce document régit l'utilisation du service « Remote Browser » (le « Service »), édité par <b data-f="name"></b> (l'« Éditeur »). En créant un compte ou en utilisant le Service, vous déclarez avoir lu et accepté ces conditions. Si vous les refusez, n'utilisez pas le Service.</p>
 
       <h4>1.1 Objet du Service</h4>
       <p>Le Service met à votre disposition, depuis un navigateur web classique, un navigateur (Chromium) qui s'exécute sur un serveur distant. L'écran de ce navigateur est transmis vers votre appareil, et vos clics et votre saisie y sont renvoyés. Aucun logiciel n'est installé sur votre appareil.</p>
@@ -279,12 +284,13 @@ body{padding-bottom:64px}
         <li><b>Effacement à la fermeture.</b> À la fin de votre session, le navigateur est détruit avec son contenu (historique, cookies, connexions, téléchargements) et remplacé par un navigateur vide. Aucun profil n'est conservé d'une session à l'autre. Si vous voulez retrouver une connexion, vous devrez la refaire.</li>
         <li><b>Pas de confidentialité absolue.</b> Pendant votre session, l'Éditeur et les prestataires d'hébergement (section 3) disposent techniquement d'un accès au serveur et pourraient, en théorie, voir ce qui s'y trouve. L'Éditeur s'engage à ne pas consulter vos contenus, sauf nécessité de sécurité, de maintenance ou obligation légale. <b>Nous vous déconseillons de saisir des informations très sensibles</b> (données bancaires, mots de passe de comptes importants, documents confidentiels, données de santé).</li>
         <li><b>Effacement différé possible.</b> Si le serveur est éteint ou interrompu, l'effacement a lieu au prochain démarrage. Si vous fermez simplement la fenêtre, le navigateur est effacé après quelques minutes d'inactivité (10 minutes par défaut).</li>
+        <li><b>Sauvegarde facultative, gardée sur votre appareil.</b> Si vous choisissez « Fermer et sauvegarder », l'état utile de votre navigateur (cookies, sessions ouvertes sur des sites, stockage local et mots de passe enregistrés dans le navigateur ; pas l'historique) est chiffré pour la clé de votre appareil, déposé quelques instants dans une boîte aux lettres temporaire, récupéré par votre appareil, puis supprimé du serveur. Seul votre appareil détient la clé de déchiffrement : si vous effacez les données du site, changez de navigateur ou d'appareil, la sauvegarde est perdue (vous vous reconnectez simplement). Le serveur manipule ces données en clair au moment de créer la sauvegarde et de la restaurer. Pour restaurer, votre appareil la déchiffre et la renvoie au serveur, chiffrée avec le mot de passe aléatoire de la session ; elle est alors en clair dans votre navigateur distant le temps de la session, avec les limites décrites ci-dessus.</li>
         <li><b>Sites visités.</b> Les sites que vous visitez voient l'adresse du serveur, non la vôtre, et appliquent leurs propres conditions et politiques de confidentialité.</li>
       </ul>
 
       <h3 id="legal-priv2">3. Protection des données personnelles (RGPD)</h3>
       <h4>3.1 Responsable du traitement</h4>
-      <p><b data-f="Jordan honorat"></b>, <span data-f="26 Rue de l'Ancien Lavoir, Leignes-sur-Fontaine, Nouvelle-Aquitaine"></span>. Contact : <b data-f="JordanHonorat@outlook.fr"></b>.</p>
+      <p><b data-f="name"></b>, <span data-f="address"></span>. Contact : <b data-f="email"></b>.</p>
 
       <h4>3.2 Données traitées, finalités et bases légales</h4>
       <ul>
@@ -292,25 +298,25 @@ body{padding-bottom:64px}
         <li><b>Données de session</b> : emplacement attribué, état et horaires de la session, mot de passe de session aléatoire (supprimé à la fermeture). Finalité : attribuer, sécuriser et fermer votre navigateur. Base légale : exécution du service.</li>
         <li><b>Données techniques et de sécurité</b> : adresse IP, journaux de connexion et d'erreur des composants du Service. Finalité : sécurité, détection des abus, dépannage. Base légale : intérêt légitime de l'Éditeur à protéger le Service.</li>
         <li><b>Contenus de navigation</b> (historique, cookies, jetons, fichiers) : présents uniquement pendant la session et effacés à sa fermeture. Ils ne sont ni analysés, ni utilisés à d'autres fins, ni vendus.</li>
-        <li><b>Stockage local du portail</b> : le portail enregistre dans votre navigateur votre session de connexion et votre acceptation de ces conditions. Il n'utilise ni publicité ni traceur d'audience.</li>
+        <li><b>Stockage local du portail</b> : le portail enregistre dans votre navigateur votre session de connexion et votre acceptation de ces conditions. Il n'utilise ni publicité ni traceur d'audience. Si vous utilisez la sauvegarde, il y stocke aussi, dans l'espace de stockage du navigateur de votre appareil, une clé de chiffrement non exportable et votre sauvegarde chiffrée.</li>
       </ul>
 
       <h4>3.3 Durée de conservation</h4>
-      <p>Les données de compte sont conservées jusqu'à la suppression du compte. Les données de session sont supprimées à la fermeture de la session. Les journaux techniques sont conservés pour une durée limitée, le temps nécessaire à la sécurité et au dépannage (en principe moins de 12 mois).</p>
+      <p>Les données de compte sont conservées jusqu'à la suppression du compte. Les données de session sont supprimées à la fermeture de la session. Une sauvegarde chiffrée déposée pour votre appareil est supprimée du serveur dès que votre appareil l'a récupérée, et au plus tard après 2 heures. Les journaux techniques sont conservés pour une durée limitée, le temps nécessaire à la sécurité et au dépannage (en principe moins de 12 mois).</p>
 
       <h4>3.4 Destinataires et sous-traitants</h4>
       <p>Les données sont traitées par l'Éditeur et par les prestataires techniques suivants, qui peuvent se situer hors de l'Union européenne (notamment aux États-Unis, avec des garanties telles que des clauses contractuelles types ou le cadre de protection des données applicable) : <b>Supabase</b> (comptes et état des sessions), <b>GitHub / Microsoft</b> (hébergement du portail et des serveurs de navigation). L'Éditeur ne vend pas vos données.</p>
 
       <h4>3.5 Vos droits</h4>
-      <p>Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données. Pour les exercer, écrivez à <b data-f="JordanHonorat@outlook.fr"></b>. Vous pouvez aussi introduire une réclamation auprès de la CNIL (www.cnil.fr).</p>
+      <p>Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données. Pour les exercer, écrivez à <b data-f="email"></b>. Vous pouvez aussi introduire une réclamation auprès de la CNIL (www.cnil.fr).</p>
 
       <h4>3.6 Sécurité</h4>
       <p>Chaque session utilise un navigateur isolé, avec un mot de passe aléatoire propre à la session, et les échanges sont chiffrés (HTTPS). Aucun système n'étant totalement sûr, l'Éditeur ne peut garantir une sécurité absolue ; en cas de violation de données présentant un risque pour vous, vous en serez informé conformément à la loi.</p>
 
       <h3 id="legal-ment">4. Mentions légales</h3>
       <ul>
-        <li><b>Éditeur du Service</b> : <b data-f="Jordan Honorat"></b>, <span data-f="26 Rue de l'Ancien Lavoir, Leignes-sur-Fontaine, Nouvelle-Aquitaine"></span>. Contact : <b data-f="JordanHonorat@outlook.fr"></b>.</li>
-        <li><b>Directeur de la publication</b> : <b data-f="Jordan Honorat"></b>.</li>
+        <li><b>Éditeur du Service</b> : <b data-f="name"></b>, <span data-f="address"></span>. Contact : <b data-f="email"></b>.</li>
+        <li><b>Directeur de la publication</b> : <b data-f="name"></b>.</li>
         <li><b>Hébergement du portail</b> : GitHub, Inc. (GitHub Pages), 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</li>
         <li><b>Base de données et authentification</b> : Supabase, Inc.</li>
         <li><b>Serveurs de navigation</b> : GitHub Codespaces (Microsoft / GitHub, Inc.).</li>
@@ -401,9 +407,13 @@ const realApi = {
   async getProfile(){ const r = await this.call("/rest/v1/profiles?select=*&id=eq." + encodeURIComponent(this.sess.uid)); return (r && r[0]) || null; },
   listProfiles(){ return this.call("/rest/v1/profiles?select=*&order=created_at.desc"); },
   setApproved(id, v){ return this.call("/rest/v1/profiles?id=eq." + encodeURIComponent(id), { method: "PATCH", body: { approved: v }, prefer: "return=minimal" }); },
-  async claimSlot(){ const r = await this.call("/rest/v1/rpc/claim_slot", { method: "POST", body: {} }); return (r && r[0]) || null; },
+  async claimSlot(want){ const r = await this.call("/rest/v1/rpc/claim_slot", { method: "POST", body: { want_restore: !!want } }); return (r && r[0]) || null; },
   async mySlot(){ const r = await this.call("/rest/v1/slots?select=*&user_id=eq." + encodeURIComponent(this.sess.uid)); return (r && r[0]) || null; },
-  closeSlot(){ return this.call("/rest/v1/rpc/close_my_slot", { method: "POST", body: {} }); },
+  closeSlot(backup, pub){ return this.call("/rest/v1/rpc/close_my_slot", { method: "POST", body: { do_backup: !!backup, pub: pub || null } }); },
+  async getRelayOut(){ const r = await this.call("/rest/v1/session_relay?select=data&direction=eq.out&user_id=eq." + encodeURIComponent(this.sess.uid)); return (r && r[0]) || null; },
+  delRelayOut(){ return this.call("/rest/v1/session_relay?direction=eq.out&user_id=eq." + encodeURIComponent(this.sess.uid), { method: "DELETE", prefer: "return=minimal" }); },
+  putRestore(b64){ return this.call("/rest/v1/session_relay?on_conflict=user_id,direction", { method: "POST", body: { user_id: this.sess.uid, direction: "in", data: b64 }, prefer: "resolution=merge-duplicates,return=minimal" }); },
+  finishRestore(){ return this.call("/rest/v1/rpc/finish_restore", { method: "POST", body: {} }); },
   listSlots(){ return this.call("/rest/v1/slots?select=*&order=id"); },
   addSlot(url){ return this.call("/rest/v1/slots", { method: "POST", body: { url }, prefer: "return=minimal" }); },
   releaseSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "PATCH", body: { closing: true, ready: false }, prefer: "return=minimal" }); },
@@ -561,6 +571,8 @@ async function renderHome(){
   $("revoked").classList.toggle("hidden", ok);
   $("ready").classList.toggle("hidden", !ok);
   if (!ok) return;
+  await refreshBackupUI();
+  await pickupBackup();
   await refreshSlot();
   startPolling();
 }
@@ -571,6 +583,78 @@ $("showPw").addEventListener("click", () => {
 $("copyPw").addEventListener("click", () => copy($("pw").value, $("copyPw")));
 
 /* ---- Mon navigateur : réservation, préparation, fermeture ---- */
+/* ---- Sauvegarde chiffrée : clés de l'appareil et chiffrement ---- */
+/* RB-CRYPTO-BEGIN */
+function b64e(u8){ let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+function b64d(s){ const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+
+/* Stockage local de l'appareil (IndexedDB) : clés et sauvegardes chiffrées. Rien n'en sort. */
+function idbOpen(){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("rb-device", 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore("keys"); r.result.createObjectStore("backups"); };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function idbRun(store, mode, fn){
+  const db = await idbOpen();
+  try{
+    return await new Promise((res, rej) => {
+      const tx = db.transaction(store, mode), req = fn(tx.objectStore(store));
+      tx.oncomplete = () => res(req && req.result);
+      tx.onerror = () => rej(tx.error);
+      tx.onabort = () => rej(tx.error);
+    });
+  } finally { db.close(); }
+}
+const idbGet = (store, key) => idbRun(store, "readonly", s => s.get(key));
+const idbPut = (store, key, val) => idbRun(store, "readwrite", s => s.put(val, key));
+const idbDel = (store, key) => idbRun(store, "readwrite", s => s.delete(key));
+
+/* Paire de clés propre à cet appareil et à ce compte. La clé privée n'est JAMAIS extractable :
+   le navigateur peut s'en servir pour déchiffrer, mais personne ne peut la lire ni la copier. */
+async function deviceKeys(uid, create){
+  let k = await idbGet("keys", uid);
+  if (!k && create){
+    const pair = await crypto.subtle.generateKey(
+      { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
+      false, ["encrypt", "decrypt"]);
+    const spki = new Uint8Array(await crypto.subtle.exportKey("spki", pair.publicKey));
+    k = { priv: pair.privateKey, pub: b64e(spki) };
+    await idbPut("keys", uid, k);
+  }
+  return k || null;
+}
+
+/* Ouvre une sauvegarde : [clé enveloppée 256][iv 16][tag HMAC 32][données AES-256-CBC] -> archive .tgz */
+async function openBackup(privKey, blob){
+  if (!(blob instanceof Uint8Array) || blob.length < 256 + 16 + 32 + 16) throw new Error("sauvegarde invalide");
+  const wrapped = blob.subarray(0, 256), iv = blob.subarray(256, 272), tag = blob.subarray(272, 304), ct = blob.subarray(304);
+  const keys = new Uint8Array(await crypto.subtle.decrypt({ name: "RSA-OAEP" }, privKey, wrapped));
+  if (keys.length !== 64) throw new Error("clé invalide");
+  const macKey = await crypto.subtle.importKey("raw", keys.subarray(32), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
+  const ivct = new Uint8Array(16 + ct.length); ivct.set(iv, 0); ivct.set(ct, 16);
+  if (!(await crypto.subtle.verify("HMAC", macKey, tag, ivct))) throw new Error("sauvegarde altérée");
+  const aes = await crypto.subtle.importKey("raw", keys.subarray(0, 32), { name: "AES-CBC" }, false, ["decrypt"]);
+  return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-CBC", iv }, aes, ct));
+}
+
+/* Prépare une archive pour le serveur de la session : format « openssl enc -aes-256-cbc -pbkdf2 -iter 100000 »,
+   clé dérivée du mot de passe de CETTE session (aléatoire, détruit à la fermeture). */
+async function sealForHost(tgz, password){
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(8));
+  const base = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, base, 384));
+  const aes = await crypto.subtle.importKey("raw", bits.subarray(0, 32), { name: "AES-CBC" }, false, ["encrypt"]);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-CBC", iv: bits.subarray(32, 48) }, aes, tgz));
+  const out = new Uint8Array(16 + ct.length);
+  out.set(enc.encode("Salted__"), 0); out.set(salt, 8); out.set(ct, 16);
+  return out;
+}
+/* RB-CRYPTO-END */
+
 let slotTimer = null;
 function stopSlot(){ if (slotTimer){ clearInterval(slotTimer); slotTimer = null; } }
 function showSlotPanel(which){ ["idle","prep","mine"].forEach(k => $(k).classList.toggle("hidden", k !== which)); }
@@ -596,20 +680,98 @@ async function refreshSlot(){
   }
   if (!slotTimer) slotTimer = setInterval(refreshSlot, 4000);
 }
-$("launch").addEventListener("click", async () => {
-  const b = $("launch"); b.disabled = true; $("full").classList.add("hidden");
+/* ---- Sauvegarde chiffrée : interface ---- */
+const CAN_BACKUP = REAL && !!(window.crypto && crypto.subtle && window.indexedDB);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function bkMsg(text){ const e = $("bkMsg"); e.textContent = text || ""; e.classList.toggle("hidden", !text); }
+async function localBackup(){ if (!CAN_BACKUP) return null; try{ return (await idbGet("backups", api.sess.uid)) || null; }catch(e){ return null; } }
+async function refreshBackupUI(){
+  const rec = await localBackup(), has = !!rec;
+  $("launchRestore").classList.toggle("hidden", !has);
+  $("bkDelete").classList.toggle("hidden", !has);
+  $("bkInfo").classList.toggle("hidden", !has);
+  if (has) $("bkInfo").textContent = "Sauvegarde enregistrée sur cet appareil le " + new Date(rec.savedAt).toLocaleString("fr-FR") + ".";
+  $("launch").textContent = has ? "Démarrer en invité" : "Démarrer mon navigateur";
+  $("closeSave").classList.toggle("hidden", !CAN_BACKUP);
+  $("closeSess").textContent = CAN_BACKUP ? "Fermer sans sauvegarder" : "Fermer ma session";
+}
+/* Récupère la sauvegarde déposée par le serveur dans la boîte aux lettres, la range sur l'appareil, vide la boîte */
+async function fetchBackup(){
+  if (!CAN_BACKUP) return false;
+  let row = null;
+  try{ row = await api.getRelayOut(); }catch(e){ return false; }
+  if (!row || !row.data) return false;
+  await idbPut("backups", api.sess.uid, { blob: b64d(row.data), savedAt: Date.now() });
+  try{ await api.delRelayOut(); }catch(e){}
+  return true;
+}
+async function pickupBackup(){
+  if (await fetchBackup()){ bkMsg("Votre dernière session a été sauvegardée, chiffrée, sur cet appareil."); await refreshBackupUI(); }
+}
+async function uploadRestore(password){
+  const uid = api.sess.uid, rec = await idbGet("backups", uid), k = await deviceKeys(uid, false);
+  if (!rec || !k) throw new Error("aucune sauvegarde sur cet appareil");
+  const tgz = await openBackup(k.priv, rec.blob);
+  await api.putRestore(b64e(await sealForHost(tgz, password)));
+}
+async function startSession(restore){
+  const b1 = $("launch"), b2 = $("launchRestore");
+  b1.disabled = b2.disabled = true; $("full").classList.add("hidden"); bkMsg("");
   try{
-    const s = await api.claimSlot();
-    if (!s){ $("full").classList.remove("hidden"); $("full").textContent = "Aucun navigateur n'est libre pour le moment. Réessayez dans quelques minutes."; }
-    else await refreshSlot();
+    const s = await api.claimSlot(restore);
+    if (!s){
+      $("full").classList.remove("hidden");
+      $("full").textContent = "Aucun navigateur n'est libre pour le moment. Réessayez dans quelques minutes.";
+    } else {
+      if (restore && s.restore_wait){
+        try{ await uploadRestore(s.password); }
+        catch(e){ bkMsg("Restauration impossible (" + (e.message || "erreur") + ") : votre navigateur démarre en invité."); }
+        try{ await api.finishRestore(); }catch(e){}
+      }
+      await refreshSlot();
+    }
   }catch(e){ $("full").classList.remove("hidden"); $("full").textContent = "Erreur : " + e.message; }
-  b.disabled = false;
+  b1.disabled = b2.disabled = false;
+}
+$("launch").addEventListener("click", () => startSession(false));
+$("launchRestore").addEventListener("click", () => startSession(true));
+$("bkDelete").addEventListener("click", async () => {
+  if (!confirm("Supprimer la sauvegarde enregistrée sur cet appareil ? Vos connexions sauvegardées seront perdues.")) return;
+  try{ await idbDel("backups", api.sess.uid); }catch(e){}
+  bkMsg("Sauvegarde supprimée de cet appareil.");
+  await refreshBackupUI();
 });
 $("closeSess").addEventListener("click", async () => {
-  if (!confirm("Fermer votre session ? Votre navigateur sera effacé : historique, cookies et connexions seront supprimés.")) return;
-  try{ await api.closeSlot(); }catch(e){ alert("Erreur : " + e.message); }
+  if (!confirm("Fermer votre session ? Votre navigateur sera effacé : historique, cookies et connexions seront supprimés" + (CAN_BACKUP ? " et rien ne sera sauvegardé." : "."))) return;
+  try{ await api.closeSlot(false, null); }catch(e){ alert("Erreur : " + e.message); }
   refreshSlot();
 });
+$("closeSave").addEventListener("click", async () => {
+  if (!confirm("Fermer votre session et sauvegarder vos connexions (cookies et sessions ouvertes) sur cet appareil ? L'historique n'est pas sauvegardé. Gardez cette page ouverte pendant la sauvegarde.")) return;
+  bkMsg("");
+  try{
+    const k = await deviceKeys(api.sess.uid, true);
+    await api.closeSlot(true, k.pub);
+  }catch(e){ alert("Erreur : " + (e.message || e)); return; }
+  await waitBackup();
+});
+async function waitBackup(){
+  stopSlot();
+  $("prepTitle").textContent = "Sauvegarde en cours…";
+  $("prepText").textContent = "Vos connexions sont chiffrées puis enregistrées sur cet appareil. Gardez cette page ouverte : environ une minute.";
+  showSlotPanel("prep");
+  const t0 = Date.now(); let gone = 0, ok = false;
+  while (Date.now() - t0 < 240000){
+    if (await fetchBackup()){ ok = true; break; }
+    let s = null; try{ s = await api.mySlot(); }catch(e){}
+    if (!s){ gone = gone || Date.now(); if (Date.now() - gone > 20000) break; }
+    await sleep(3000);
+  }
+  bkMsg(ok ? "Session fermée. Vos connexions sont sauvegardées, chiffrées, sur cet appareil."
+           : "Session fermée, mais la sauvegarde n'a pas pu être faite : rien n'a été conservé.");
+  await refreshBackupUI();
+  await refreshSlot();
+}
 
 /* ---- État et démarrage automatique du serveur ---- */
 const BUSY = ["Created","Queued","Provisioning","Awaiting","Starting","Rebuilding","Updating"];
@@ -776,7 +938,7 @@ $("addSlot").addEventListener("click", async () => {
 /* ---- CGU : affichage à l'entrée, bandeau permanent ---- */
 (function(){
   var C = window.RB_CONFIG || {};
-  var VERSION = "2026-11-15"; /* à changer quand les conditions changent : tout le monde doit réaccepter */
+  var VERSION = "2026-11-16"; /* à changer quand les conditions changent : tout le monde doit réaccepter */
   var KEY = "rb_cgu_accepted";
   var overlay = document.getElementById("cguOverlay"), body = document.getElementById("cguBody");
   var btnA = document.getElementById("cguAccept"), btnR = document.getElementById("cguRefuse"), btnC = document.getElementById("cguClose");
@@ -788,7 +950,7 @@ $("addSlot").addEventListener("click", async () => {
     name: C.EDITOR_NAME, address: C.EDITOR_ADDRESS, email: C.CONTACT_EMAIL,
     date: new Date(VERSION).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
   };
-  var labels = { name: "[À COMPLÉTER : nom de l'éditeur]", address: "[À COMPLÉTER : adresse]", email: "[À COMPLÉTER : e-mail de contact]" };
+  var labels = { name: "Jordan Honorat", address: "26 Rue de l'Ancien Lavoir, Leignes-sur-Fontaine, Nouvelle-Aquitaine", email: "JordanHonorat@outlook.fr" };
   document.querySelectorAll("[data-f]").forEach(function(el){
     var k = el.getAttribute("data-f"), v = fields[k];
     if (v) el.textContent = v; else { el.textContent = labels[k] || ""; el.className += " missing"; }
