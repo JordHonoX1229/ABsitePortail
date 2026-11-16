@@ -137,6 +137,7 @@ body{padding-bottom:64px}
         <div id="mine" class="hidden">
           <a class="btn primary big" id="openLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Ouvrir mon navigateur</a>
           <p class="small muted" style="margin-top:12px">Quand le navigateur demande un identifiant, saisissez <b>kasm_user</b> et collez le mot de passe copié ci-dessous. Ce navigateur est le vôtre pour cette session.</p>
+          <p id="touchHint" class="small muted hidden" style="margin:8px 0 0">Sur écran tactile : touchez pour cliquer, glissez à deux doigts pour faire défiler, et utilisez le bouton clavier en bas à droite pour écrire. Sur téléphone, tournez l'écran en mode paysage.</p>
           <details open style="margin:12px 0">
             <summary class="small">Identifiant et mot de passe de la session</summary>
             <p class="small muted" style="margin:8px 0 0">Identifiant : <b>kasm_user</b>. Le mot de passe est valable pour cette session seulement.</p>
@@ -582,6 +583,20 @@ $("showPw").addEventListener("click", () => {
 });
 $("copyPw").addEventListener("click", () => copy($("pw").value, $("copyPw")));
 
+/* ---- Appareil : l'interface du navigateur distant s'adapte (écran tactile ou non) ---- */
+function deviceKind(){
+  const touch = (navigator.maxTouchPoints || 0) > 1 || (window.matchMedia && matchMedia("(pointer:coarse)").matches);
+  if (!touch) return "desktop";
+  const small = Math.min(screen.width || 9999, screen.height || 9999);   /* en pixels CSS */
+  return small < 600 ? "phone" : "tablet";
+}
+/* Réglages du client KasmVNC passés dans l'adresse : résolution adaptée à l'écran, bouton clavier sur tactile */
+function openUrl(base){
+  const p = ["resize=remote"];
+  if (deviceKind() !== "desktop") p.push("virtual_keyboard_visible=true");
+  return base.replace(/\/+$/, "") + "/?" + p.join("&");
+}
+
 /* ---- Mon navigateur : réservation, préparation, fermeture ---- */
 /* ---- Sauvegarde chiffrée : clés de l'appareil et chiffrement ---- */
 /* RB-CRYPTO-BEGIN */
@@ -672,7 +687,8 @@ async function refreshSlot(){
     $("prepText").textContent = "Environ 1 à 2 minutes, parfois plus. Cette page se met à jour toute seule. Si le serveur est éteint, démarrez-le avec le bandeau ci-dessous.";
     showSlotPanel("prep");
   } else {
-    $("openLink").href = slot.url;
+    $("openLink").href = openUrl(slot.url);
+    $("touchHint").classList.toggle("hidden", deviceKind() === "desktop");
     $("pw").value = slot.password || "";
     showSlotPanel("mine");
     stopSlot();
