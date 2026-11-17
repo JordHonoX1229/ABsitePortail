@@ -136,10 +136,10 @@ body{padding-bottom:64px}
         </div>
         <div id="mine" class="hidden">
           <a class="btn primary big" id="openLink" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Ouvrir mon navigateur</a>
-          <p class="small muted" style="margin-top:12px">Quand le navigateur demande un identifiant, saisissez <b>kasm_user</b> et collez le mot de passe copié ci-dessous. Ce navigateur est le vôtre pour cette session.</p>
+          <p class="small muted" style="margin-top:12px">La connexion est automatique : rien à saisir. Ce navigateur est le vôtre pour cette session. Si votre appareil vous demande tout de même un identifiant, utilisez les informations ci-dessous.</p>
           <p id="touchHint" class="small muted hidden" style="margin:8px 0 0">Sur écran tactile : touchez pour cliquer, glissez à deux doigts pour faire défiler, et utilisez le bouton clavier en bas à droite pour écrire. Sur téléphone, tournez l'écran en mode paysage.</p>
-          <details open style="margin:12px 0">
-            <summary class="small">Identifiant et mot de passe de la session</summary>
+          <details style="margin:12px 0">
+            <summary class="small">Si une saisie est demandée : identifiant et mot de passe</summary>
             <p class="small muted" style="margin:8px 0 0">Identifiant : <b>kasm_user</b>. Le mot de passe est valable pour cette session seulement.</p>
             <div class="row" style="margin-top:8px"><input id="pw" type="password" readonly><button id="showPw" type="button">Afficher</button><button id="copyPw" type="button">Copier</button></div>
           </details>
@@ -591,10 +591,18 @@ function deviceKind(){
   return small < 600 ? "phone" : "tablet";
 }
 /* Réglages du client KasmVNC passés dans l'adresse : résolution adaptée à l'écran, bouton clavier sur tactile */
-function openUrl(base){
+function openUrl(base, password){
   const p = ["resize=remote"];
   if (deviceKind() !== "desktop") p.push("virtual_keyboard_visible=true");
-  return base.replace(/\/+$/, "") + "/?" + p.join("&");
+  const plain = base.replace(/\/+$/, "") + "/?" + p.join("&");
+  if (!password) return plain;
+  try {
+    /* Connexion automatique : identifiants dans l'adresse, rien à saisir */
+    const u = new URL(plain);
+    u.username = "kasm_user";
+    u.password = password;
+    return u.toString();
+  } catch (e) { return plain; }
 }
 
 /* ---- Mon navigateur : réservation, préparation, fermeture ---- */
@@ -687,7 +695,7 @@ async function refreshSlot(){
     $("prepText").textContent = "Environ 1 à 2 minutes, parfois plus. Cette page se met à jour toute seule. Si le serveur est éteint, démarrez-le avec le bandeau ci-dessous.";
     showSlotPanel("prep");
   } else {
-    $("openLink").href = openUrl(slot.url);
+    $("openLink").href = openUrl(slot.url, slot.password);
     $("touchHint").classList.toggle("hidden", deviceKind() === "desktop");
     $("pw").value = slot.password || "";
     showSlotPanel("mine");
