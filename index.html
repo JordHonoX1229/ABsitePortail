@@ -417,7 +417,7 @@ const realApi = {
   finishRestore(){ return this.call("/rest/v1/rpc/finish_restore", { method: "POST", body: {} }); },
   listSlots(){ return this.call("/rest/v1/slots?select=*&order=id"); },
   addSlot(url){ return this.call("/rest/v1/slots", { method: "POST", body: { url }, prefer: "return=minimal" }); },
-  releaseSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "PATCH", body: { closing: true, ready: false }, prefer: "return=minimal" }); },
+  releaseSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "PATCH", body: { user_id: null, password: null, ready: false, closing: false, claimed_at: null, backup: false, backup_pub: null, restore_wait: false }, prefer: "return=minimal" }); },
   deleteSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "DELETE", prefer: "return=minimal" }); },
   requestStart(email){ return this.call("/rest/v1/start_requests?on_conflict=user_id", { method: "POST", body: { email }, prefer: "resolution=ignore-duplicates,return=minimal" }); },
   async server(action){ const r = await this.call("/functions/v1/codespace", { method: "POST", body: { action } }); return r || {}; },
@@ -903,7 +903,7 @@ function renderSlots(slots, byId){
     if (s.user_id){
       const rel = el("button", "Libérer");
       rel.addEventListener("click", async () => {
-        if (!confirm("Fermer la session de cette personne ? Son navigateur sera effacé et l'emplacement libéré dans les secondes qui suivent (ou au prochain démarrage du serveur s'il est éteint).")) return;
+        if (!confirm("Fermer la session de cette personne ? L'emplacement est libéré tout de suite ; son navigateur est effacé dans les secondes qui suivent (ou au prochain démarrage du serveur s'il est éteint).")) return;
         try{ await api.releaseSlot(s.id); }catch(e){ alert("Erreur : " + e.message); }
         loadAdmin();
       });
@@ -974,7 +974,7 @@ $("addSlot").addEventListener("click", async () => {
     name: C.EDITOR_NAME, address: C.EDITOR_ADDRESS, email: C.CONTACT_EMAIL,
     date: new Date(VERSION).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
   };
-  var labels = { name: "Jordan Honorat", address: "26 Rue de l'Ancien Lavoir, Leignes-sur-Fontaine, Nouvelle-Aquitaine", email: "JordanHonorat@outlook.fr" };
+  var labels = { name: "Jordan Honorat", address: "26 rue de l'Ancien Lavoir, Leignes-sur-Fontaine, Nouvelle Aquitaine", email: "JordanHonorat@outlook.fr" };
   document.querySelectorAll("[data-f]").forEach(function(el){
     var k = el.getAttribute("data-f"), v = fields[k];
     if (v) el.textContent = v; else { el.textContent = labels[k] || ""; el.className += " missing"; }
