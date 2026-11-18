@@ -415,6 +415,7 @@ const realApi = {
   delRelayOut(){ return this.call("/rest/v1/session_relay?direction=eq.out&user_id=eq." + encodeURIComponent(this.sess.uid), { method: "DELETE", prefer: "return=minimal" }); },
   putRestore(b64){ return this.call("/rest/v1/session_relay?on_conflict=user_id,direction", { method: "POST", body: { user_id: this.sess.uid, direction: "in", data: b64 }, prefer: "resolution=merge-duplicates,return=minimal" }); },
   finishRestore(){ return this.call("/rest/v1/rpc/finish_restore", { method: "POST", body: {} }); },
+  recordCgu(v, hash, t){ return this.call("/rest/v1/rpc/record_cgu", { method: "POST", body: { p_version: v, p_hash: hash, p_client_time: t || null, p_ua: (navigator.userAgent || "").slice(0, 300) } }); },
   listSlots(){ return this.call("/rest/v1/slots?select=*&order=id"); },
   addSlot(url){ return this.call("/rest/v1/slots", { method: "POST", body: { url }, prefer: "return=minimal" }); },
   releaseSlot(id){ return this.call("/rest/v1/slots?id=eq." + encodeURIComponent(id), { method: "PATCH", body: { user_id: null, password: null, ready: false, closing: false, claimed_at: null, backup: false, backup_pub: null, restore_wait: false }, prefer: "return=minimal" }); },
@@ -427,6 +428,7 @@ const realApi = {
 
 /* ============ API : démo (local) ============ */
 const demoApi = {
+  recordCgu(){ return Promise.resolve(); },
   users(){ return store.get("rb_demo_users", []); },
   put(u){ store.set("rb_demo_users", u); },
   slots(){ return store.get("rb_demo_slots", []); },
@@ -572,6 +574,8 @@ async function renderHome(){
   $("revoked").classList.toggle("hidden", ok);
   $("ready").classList.toggle("hidden", !ok);
   if (!ok) return;
+  /* Registre des CGU : on enregistre sur le serveur l'acceptation faite à l'entrée du site */
+  try{ if (window.RB_CGU) await window.RB_CGU.flush((v, hash, t) => api.recordCgu(v, hash, t), api.sess.uid); }catch(e){}
   await refreshBackupUI();
   await pickupBackup();
   await refreshSlot();
@@ -988,7 +992,7 @@ $("addSlot").addEventListener("click", async () => {
     name: C.EDITOR_NAME, address: C.EDITOR_ADDRESS, email: C.CONTACT_EMAIL,
     date: new Date(VERSION).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
   };
-  var labels = { name: "Jordan Honorat", address: "26 rue de l'Ancien Lavoir, Leignes-sur-Fontaine, Nouvelle aquitaine", email: "JordanHonorat@outlook.fr" };
+  var labels = { name: "Jordan Honorat", address: "26 rue de l'Ancien Lavoir, Leigne-sur-Fontaine", email: "JordanHonorat@outlook.fr" };
   document.querySelectorAll("[data-f]").forEach(function(el){
     var k = el.getAttribute("data-f"), v = fields[k];
     if (v) el.textContent = v; else { el.textContent = labels[k] || ""; el.className += " missing"; }
@@ -997,7 +1001,29 @@ $("addSlot").addEventListener("click", async () => {
   function accepted(){ try{ return localStorage.getItem(KEY) === VERSION; }catch(e){ return sessionStorage_ok(); } }
   var memAccepted = false;
   function sessionStorage_ok(){ return memAccepted; }
-  function remember(){ memAccepted = true; try{ localStorage.setItem(KEY, VERSION); }catch(e){} }
+  function remember(){
+    memAccepted = true;
+    try{ localStorage.setItem(KEY, VERSION); localStorage.setItem("rb_cgu_time", new Date().toISOString()); }catch(e){}
+  }
+
+  /* Empreinte SHA-256 du texte affiché (preuve de ce qui a été accepté) */
+  async function textHash(){
+    var txt = body.textContent.replace(/\s+/g, " ").trim();
+    var buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt));
+    return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2, "0"); }).join("");
+  }
+  /* Appelé après connexion : enregistre l'acceptation sur le serveur, une fois par compte et par version */
+  window.RB_CGU = {
+    flush: async function(record, uid){
+      if (!accepted() || !window.crypto || !crypto.subtle) return;
+      var mark = "rb_cgu_recorded_" + uid, done = null;
+      try{ done = localStorage.getItem(mark); }catch(e){}
+      if (done === VERSION) return;
+      var t = null; try{ t = localStorage.getItem("rb_cgu_time"); }catch(e){}
+      await record(VERSION, await textHash(), t);
+      try{ localStorage.setItem(mark, VERSION); }catch(e){}
+    }
+  };
 
   function atEnd(){ return body.scrollTop + body.clientHeight >= body.scrollHeight - 8; }
   function updateBtn(){ if (mustAccept){ var ok = atEnd(); btnA.disabled = !ok; hint.style.display = ok ? "none" : ""; } }
