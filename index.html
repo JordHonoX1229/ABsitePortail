@@ -51,6 +51,30 @@ ul.check li{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--li
 ul.check input{width:22px;min-height:22px;margin-top:3px}
 .big{min-height:56px;font-size:18px;font-weight:600;width:100%}
 
+/* ---- Discussion ---- */
+#chatFab{position:fixed;right:16px;bottom:calc(64px + env(safe-area-inset-bottom));z-index:35;min-height:48px;border-radius:99px;background:var(--brand);color:var(--brand-ink);border:0;box-shadow:0 6px 20px rgba(16,24,40,.28);font-weight:600;padding:0 20px}
+#chatBadge{background:var(--bad);color:#fff;border-radius:99px;font-size:12px;padding:1px 7px;margin-left:8px;font-weight:700}
+#chatPanel{position:fixed;right:16px;bottom:calc(64px + env(safe-area-inset-bottom));z-index:40;width:min(400px,calc(100vw - 32px));height:min(72dvh,580px);display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 12px 40px rgba(16,24,40,.3);overflow:hidden}
+@media(max-width:600px){#chatPanel{inset:0;width:auto;height:auto;border-radius:0;border:0;padding-top:env(safe-area-inset-top)}}
+.chatHead{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.chatHead b{flex:1}
+.chatHead button,.chatWho button{min-height:36px;padding:0 12px}
+.chatWho{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--line)}
+.chatWho span.me{flex:1;min-width:0}
+#chatNameForm{padding:8px 12px;border-bottom:1px solid var(--line)}
+#chatNameForm .row{margin-top:6px}
+#chatList{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain}
+.cm{max-width:88%;padding:7px 10px;border-radius:12px;background:color-mix(in srgb,var(--text) 7%,var(--panel));align-self:flex-start;word-break:break-word;white-space:pre-wrap}
+.cm.mine{align-self:flex-end;background:color-mix(in srgb,var(--brand) 18%,var(--panel))}
+.cm .who{font-size:12px;font-weight:700;color:var(--muted);display:flex;gap:6px;align-items:center;white-space:normal}
+.cm .who .t{font-weight:400}
+.cm .who button{min-height:24px;padding:0 6px;font-size:12px;border:0;background:transparent;color:var(--bad)}
+.cert{display:inline-flex;width:15px;height:15px;border-radius:50%;background:var(--ok);color:#fff;font-size:10px;line-height:1;align-items:center;justify-content:center;flex:none}
+#chatForm{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+#chatForm input{flex:1;min-width:0}
+#chatMsg{padding:0 12px 6px;min-height:0}
+#chatEmpty{margin:auto;text-align:center;padding:0 16px}
+
 /* ---- CGU et bandeau légal ---- */
 body{padding-bottom:64px}
 #legalBar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between;padding:8px 16px calc(8px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line)}
@@ -226,6 +250,25 @@ body{padding-bottom:64px}
 </section>
 
 </main>
+
+<!-- DISCUSSION -->
+<button id="chatFab" class="hidden" type="button" aria-controls="chatPanel" aria-expanded="false">Discussion<span id="chatBadge" class="hidden"></span></button>
+<section id="chatPanel" class="hidden" role="dialog" aria-label="Discussion entre utilisateurs">
+  <div class="chatHead"><b>Discussion</b><span class="small muted">messages gardés 1 h</span><button id="chatClose" type="button" aria-label="Fermer la discussion">Fermer</button></div>
+  <div class="chatWho small"><span class="me" id="chatMe"></span><button id="chatRename" type="button">Choisir un nom</button></div>
+  <form id="chatNameForm" class="hidden" autocomplete="off">
+    <label for="chatName" style="margin:0 0 4px">Votre nom d'usage</label>
+    <input id="chatName" maxlength="24" placeholder="Laissez vide pour utiliser votre numéro de port" autocomplete="off">
+    <p class="small muted" style="margin:6px 0 0">2 à 24 caractères. Sans nom, vous apparaissez avec le numéro de votre navigateur (avec une coche verte) ou « Inconnu » suivi d'un nombre. La coche ne peut pas être imitée.</p>
+    <div class="row"><button class="primary" type="submit">Enregistrer</button><button id="chatNameCancel" type="button">Annuler</button></div>
+  </form>
+  <div id="chatList" role="log" aria-live="polite"></div>
+  <div id="chatMsg" class="small" role="status"></div>
+  <form id="chatForm" autocomplete="off">
+    <input id="chatInput" maxlength="500" placeholder="Votre message" aria-label="Votre message" autocomplete="off">
+    <button class="primary" type="submit" id="chatSend">Envoyer</button>
+  </form>
+</section>
 </div>
 
 <!-- ===== CGU / CONFIDENTIALITÉ / MENTIONS LÉGALES ===== -->
@@ -286,12 +329,14 @@ body{padding-bottom:64px}
         <li><b>Pas de confidentialité absolue.</b> Pendant votre session, l'Éditeur et les prestataires d'hébergement (section 3) disposent techniquement d'un accès au serveur et pourraient, en théorie, voir ce qui s'y trouve. L'Éditeur s'engage à ne pas consulter vos contenus, sauf nécessité de sécurité, de maintenance ou obligation légale. <b>Nous vous déconseillons de saisir des informations très sensibles</b> (données bancaires, mots de passe de comptes importants, documents confidentiels, données de santé).</li>
         <li><b>Effacement différé possible.</b> Si le serveur est éteint ou interrompu, l'effacement a lieu au prochain démarrage. Si vous fermez simplement la fenêtre, le navigateur est effacé après quelques minutes d'inactivité (10 minutes par défaut).</li>
         <li><b>Sauvegarde facultative, gardée sur votre appareil.</b> Si vous choisissez « Fermer et sauvegarder », l'état utile de votre navigateur (cookies, sessions ouvertes sur des sites, stockage local et mots de passe enregistrés dans le navigateur ; pas l'historique) est chiffré pour la clé de votre appareil, déposé quelques instants dans une boîte aux lettres temporaire, récupéré par votre appareil, puis supprimé du serveur. Seul votre appareil détient la clé de déchiffrement : si vous effacez les données du site, changez de navigateur ou d'appareil, la sauvegarde est perdue (vous vous reconnectez simplement). Le serveur manipule ces données en clair au moment de créer la sauvegarde et de la restaurer. Pour restaurer, votre appareil la déchiffre et la renvoie au serveur, chiffrée avec le mot de passe aléatoire de la session ; elle est alors en clair dans votre navigateur distant le temps de la session, avec les limites décrites ci-dessus.</li>
+        <li><b>Discussion entre utilisateurs.</b> Le service propose une discussion ouverte à tous les comptes actifs. Vos messages sont visibles de tous les utilisateurs connectés, avec le nom affiché : votre nom d'usage si vous en choisissez un, sinon le numéro de port de votre navigateur (avec une coche), sinon « Inconnu » suivi d'un nombre. Vous êtes seul responsable de ce que vous écrivez : aucun contenu illicite, haineux, harcelant ou trompeur, aucune donnée personnelle ni mot de passe, aucune usurpation de nom. Les messages sont conservés une heure au plus et effacés quand le serveur s'éteint. L'éditeur peut supprimer un message et suspendre un compte.</li>
         <li><b>Sites visités.</b> Les sites que vous visitez voient l'adresse du serveur, non la vôtre, et appliquent leurs propres conditions et politiques de confidentialité.</li>
       </ul>
 
       <h3 id="legal-priv2">3. Protection des données personnelles (RGPD)</h3>
       <h4>3.1 Responsable du traitement</h4>
-      <p><b data-f="name"></b>, <span data-f="address"></span>. Contact : <b data-f="email"></b>.</p>
+      <p data-ed="named"><b data-f="name"></b>, <span data-f="address"></span>. Contact : <b data-f="email"></b>.</p>
+      <p data-ed="anon" class="hidden">Le responsable du traitement est l'éditeur du Service, une personne physique agissant à titre non professionnel (voir « Mentions légales » ci-dessous). Contact pour toute question ou pour exercer vos droits : <b data-f="email"></b>.</p>
 
       <h4>3.2 Données traitées, finalités et bases légales</h4>
       <ul>
@@ -316,11 +361,12 @@ body{padding-bottom:64px}
 
       <h3 id="legal-ment">4. Mentions légales</h3>
       <ul>
-        <li><b>Éditeur du Service</b> : <b data-f="name"></b>, <span data-f="address"></span>. Contact : <b data-f="email"></b>.</li>
-        <li><b>Directeur de la publication</b> : <b data-f="name"></b>.</li>
+        <li data-ed="named"><b>Éditeur du Service</b> : <b data-f="name"></b>, <span data-f="address"></span>. Contact : <b data-f="email"></b>.</li>
+        <li data-ed="named"><b>Directeur de la publication</b> : <b data-f="name"></b>.</li>
+        <li data-ed="anon" class="hidden"><b>Éditeur du Service</b> : une personne physique agissant à titre non professionnel (service gratuit, sans activité commerciale), qui a choisi de ne pas rendre publics son nom et son adresse, comme le permet la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique. Son identité a été communiquée aux hébergeurs indiqués ci-dessous. Contact : <b data-f="email"></b>.</li>
         <li><b>Hébergement du portail</b> : GitHub, Inc. (GitHub Pages), 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</li>
-        <li><b>Base de données et authentification</b> : Supabase, Inc.</li>
-        <li><b>Serveurs de navigation</b> : GitHub Codespaces (Microsoft / GitHub, Inc.).</li>
+        <li><b>Base de données et authentification</b> : Supabase Pte. Ltd., 65 Chulia Street, #38-02/03, OCBC Centre, Singapour 049513 ; contact : legal@supabase.io.</li>
+        <li><b>Serveurs de navigation</b> : GitHub Codespaces (GitHub, Inc., adresse ci-dessus ; infrastructure Microsoft).</li>
       </ul>
       <p class="small muted">Fin du document. En cliquant sur « J'ai lu et j'accepte », vous reconnaissez avoir pris connaissance des sections 1 à 4.</p>
     </div>
@@ -415,6 +461,11 @@ const realApi = {
   delRelayOut(){ return this.call("/rest/v1/session_relay?direction=eq.out&user_id=eq." + encodeURIComponent(this.sess.uid), { method: "DELETE", prefer: "return=minimal" }); },
   putRestore(b64){ return this.call("/rest/v1/session_relay?on_conflict=user_id,direction", { method: "POST", body: { user_id: this.sess.uid, direction: "in", data: b64 }, prefer: "resolution=merge-duplicates,return=minimal" }); },
   finishRestore(){ return this.call("/rest/v1/rpc/finish_restore", { method: "POST", body: {} }); },
+  async chatLabel(){ const r = await this.call("/rest/v1/rpc/chat_my_label", { method: "POST", body: {} }); return (r && r[0]) || null; },
+  chatSetName(n){ return this.call("/rest/v1/rpc/chat_set_name", { method: "POST", body: { p_name: n } }); },
+  chatSend(b){ return this.call("/rest/v1/rpc/chat_send", { method: "POST", body: { p_body: b } }); },
+  async chatList(after){ return (await this.call("/rest/v1/rpc/chat_list", { method: "POST", body: { p_after: after || 0 } })) || []; },
+  chatDelete(id){ return this.call("/rest/v1/rpc/chat_delete", { method: "POST", body: { p_id: id } }); },
   recordCgu(v, hash, t){ return this.call("/rest/v1/rpc/record_cgu", { method: "POST", body: { p_version: v, p_hash: hash, p_client_time: t || null, p_ua: (navigator.userAgent || "").slice(0, 300) } }); },
   listSlots(){ return this.call("/rest/v1/slots?select=*&order=id"); },
   addSlot(url){ return this.call("/rest/v1/slots", { method: "POST", body: { url }, prefer: "return=minimal" }); },
@@ -429,6 +480,51 @@ const realApi = {
 /* ============ API : démo (local) ============ */
 const demoApi = {
   recordCgu(){ return Promise.resolve(); },
+  chatDb(){
+    const d = store.get("rb_demo_chat", { msgs: [], names: {}, guest: {}, next: 1 });
+    d.msgs = d.msgs.filter(m => Date.now() - m.t < 3600e3);
+    return d;
+  },
+  chatUid(){ return (this.sess && (this.sess.uid || this.sess.email)) || "demo"; },
+  async chatLabel(){
+    const d = this.chatDb(), uid = this.chatUid();
+    if (d.names[uid]) return { label: d.names[uid], certified: false, has_name: true };
+    const s = this.slots().find(x => x.user_id === uid);
+    const m = s && /-(69\d\d)\./.exec(s.url || "");
+    if (m) return { label: m[1], certified: true, has_name: false };
+    if (!d.guest[uid]){ d.guest[uid] = 1000 + Math.floor(Math.random() * 9000); store.set("rb_demo_chat", d); }
+    return { label: "Inconnu " + d.guest[uid], certified: false, has_name: false };
+  },
+  async chatSetName(n){
+    const d = this.chatDb(), uid = this.chatUid();
+    n = (n || "").replace(/\s+/g, " ").trim();
+    if (n){
+      if (n.length < 2 || n.length > 24) throw new Error("le nom doit faire de 2 à 24 caractères");
+      if (/[<>&"]/.test(n)) throw new Error("caractères non autorisés dans le nom");
+      if (/[✓✔☑✅]/.test(n)) throw new Error("le nom ne peut pas contenir de coche");
+      if (/^[0-9 ]+$/.test(n)) throw new Error("un nom ne peut pas être un simple nombre (réservé aux numéros de port)");
+      if (/^inconnu/i.test(n)) throw new Error("ce nom est réservé");
+      const k = n.toLowerCase().replace(/ /g, "");
+      if (Object.keys(d.names).some(u => u !== uid && d.names[u].toLowerCase().replace(/ /g, "") === k)) throw new Error("ce nom est déjà pris");
+      d.names[uid] = n;
+    } else delete d.names[uid];
+    store.set("rb_demo_chat", d);
+    return (await this.chatLabel()).label;
+  },
+  async chatSend(b){
+    b = (b || "").trim();
+    if (!b) throw new Error("message vide");
+    if (b.length > 500) throw new Error("message trop long (500 caractères au plus)");
+    const l = await this.chatLabel(), d = this.chatDb(), uid = this.chatUid();
+    d.msgs.push({ id: d.next++, uid, author: l.label, certified: l.certified, body: b, t: Date.now() });
+    d.msgs = d.msgs.slice(-500);
+    store.set("rb_demo_chat", d);
+  },
+  async chatList(after){
+    const d = this.chatDb(), uid = this.chatUid();
+    return d.msgs.filter(m => m.id > (after || 0)).slice(-200).map(m => ({ id: m.id, author: m.author, certified: m.certified, body: m.body, created_at: new Date(m.t).toISOString(), mine: m.uid === uid }));
+  },
+  async chatDelete(id){ const d = this.chatDb(); d.msgs = d.msgs.filter(m => m.id !== id); store.set("rb_demo_chat", d); },
   users(){ return store.get("rb_demo_users", []); },
   put(u){ store.set("rb_demo_users", u); },
   slots(){ return store.get("rb_demo_slots", []); },
@@ -562,10 +658,149 @@ async function enterApp(){
   $("who").textContent = me.email;
   document.querySelector('[data-view="admin"]').classList.toggle("hidden", !me.is_admin);
   show("home");
+  if (me.approved || me.is_admin) chatStart(); else chatStop();
 }
 $("logout").addEventListener("click", async () => {
+  chatStop();
   await api.signOut(); me = null;
   $("app").classList.add("hidden"); $("auth").classList.remove("hidden"); setMode("login");
+});
+
+/* ---- Discussion ---- */
+const chat = { timer: null, last: 0, msgs: [], unread: 0, open: false, tick: 0, busy: false, label: null };
+function chatStart(){
+  chatStop();
+  chat.msgs = []; chat.last = 0; chat.unread = 0; chat.tick = 0;
+  $("chatFab").classList.remove("hidden");
+  chatRefreshLabel(); chatPoll();
+  chat.timer = setInterval(chatTick, 4000);
+}
+function chatStop(){
+  if (chat.timer){ clearInterval(chat.timer); chat.timer = null; }
+  chat.open = false; chat.msgs = []; chat.last = 0;
+  $("chatPanel").classList.add("hidden"); $("chatFab").classList.add("hidden");
+  $("chatFab").setAttribute("aria-expanded", "false");
+  $("chatList").textContent = ""; $("chatBadge").classList.add("hidden");
+}
+function chatTick(){
+  if (document.hidden) return;
+  chat.tick++;
+  if (!chat.open && chat.tick % 5) return;   /* panneau fermé : une vérification toutes les 20 s */
+  if (chat.tick % 8 === 0) chatRefreshLabel();
+  chatPoll();
+}
+function certIcon(){
+  const c = el("span", "✓", "cert");
+  c.title = "Certifié : numéro attribué automatiquement à un navigateur actif";
+  c.setAttribute("aria-label", "certifié");
+  return c;
+}
+async function chatRefreshLabel(){
+  try{
+    const l = await api.chatLabel();
+    if (!l) return;
+    chat.label = l;
+    const w = $("chatMe"); w.textContent = "Vous écrivez en tant que ";
+    w.appendChild(el("b", l.label));
+    if (l.certified){ w.appendChild(document.createTextNode(" ")); w.appendChild(certIcon()); }
+    $("chatRename").textContent = l.has_name ? "Changer de nom" : "Choisir un nom";
+  }catch(e){}
+}
+function chatBadge(){
+  const b = $("chatBadge");
+  b.textContent = chat.unread > 9 ? "9+" : String(chat.unread);
+  b.classList.toggle("hidden", chat.unread < 1);
+}
+function chatTime(iso){
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+}
+function chatRender(){
+  const box = $("chatList");
+  const near = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+  chat.msgs = chat.msgs.filter(m => Date.now() - Date.parse(m.created_at) < 3600e3 + 120e3);
+  box.textContent = "";
+  if (!chat.msgs.length){
+    box.appendChild(el("p", "Aucun message pour le moment. Les messages sont effacés au bout d'une heure, et quand le serveur s'éteint.", "small muted")).id = "chatEmpty";
+  }
+  chat.msgs.forEach(m => {
+    const d = el("div", null, "cm" + (m.mine ? " mine" : ""));
+    const w = el("div", null, "who");
+    w.appendChild(el("span", m.author));
+    if (m.certified) w.appendChild(certIcon());
+    w.appendChild(el("span", chatTime(m.created_at), "t"));
+    if (me && me.is_admin){
+      const x = el("button", "Supprimer"); x.type = "button";
+      x.addEventListener("click", async () => {
+        try{ await api.chatDelete(m.id); chat.msgs = chat.msgs.filter(y => y.id !== m.id); chatRender(); }catch(e){ setMsg($("chatMsg"), e.message || "Erreur."); }
+      });
+      w.appendChild(x);
+    }
+    d.appendChild(w);
+    d.appendChild(el("div", m.body));
+    box.appendChild(d);
+  });
+  if (near || chat.forceBottom){ box.scrollTop = box.scrollHeight; chat.forceBottom = false; }
+}
+async function chatPoll(){
+  if (chat.busy) return;
+  chat.busy = true;
+  try{
+    const rows = await api.chatList(chat.last);
+    const fresh = (rows || []).filter(r => r.id > chat.last);
+    if (fresh.length){
+      fresh.forEach(r => chat.msgs.push(r));
+      chat.last = fresh[fresh.length - 1].id;
+      chat.msgs = chat.msgs.slice(-300);
+      if (chat.open) chatRender();
+      else { chat.unread += fresh.filter(r => !r.mine).length; chatBadge(); }
+    }
+  }catch(e){}
+  chat.busy = false;
+}
+async function chatOpen(){
+  chat.open = true; chat.unread = 0; chatBadge();
+  $("chatPanel").classList.remove("hidden"); $("chatFab").setAttribute("aria-expanded", "true");
+  setMsg($("chatMsg"), "");
+  chat.msgs = []; chat.last = 0; chat.forceBottom = true;   /* rechargement complet : reflète les effacements du serveur */
+  chatRender(); chatRefreshLabel();
+  await chatPoll();
+  chatRender();
+  $("chatInput").focus();
+}
+function chatClose(){
+  chat.open = false;
+  $("chatPanel").classList.add("hidden"); $("chatFab").setAttribute("aria-expanded", "false");
+  $("chatNameForm").classList.add("hidden");
+}
+$("chatFab").addEventListener("click", () => { chat.open ? chatClose() : chatOpen(); });
+$("chatClose").addEventListener("click", chatClose);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && chat.open) chatClose(); });
+$("chatRename").addEventListener("click", () => {
+  const f = $("chatNameForm"); f.classList.toggle("hidden");
+  if (!f.classList.contains("hidden")){ $("chatName").value = chat.label && chat.label.has_name ? chat.label.label : ""; $("chatName").focus(); }
+});
+$("chatNameCancel").addEventListener("click", () => $("chatNameForm").classList.add("hidden"));
+$("chatNameForm").addEventListener("submit", async e => {
+  e.preventDefault(); setMsg($("chatMsg"), "");
+  try{
+    await api.chatSetName($("chatName").value);
+    $("chatNameForm").classList.add("hidden");
+    await chatRefreshLabel();
+    setMsg($("chatMsg"), "Nom enregistré.", "ok");
+  }catch(err){ setMsg($("chatMsg"), err.message || "Erreur."); }
+});
+$("chatForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const inp = $("chatInput"), txt = inp.value;
+  if (!txt.trim()) return;
+  $("chatSend").disabled = true; setMsg($("chatMsg"), "");
+  try{
+    await api.chatSend(txt);
+    inp.value = ""; chat.forceBottom = true;
+    await chatPoll();
+  }catch(err){ setMsg($("chatMsg"), err.message || "Erreur."); }
+  $("chatSend").disabled = false; inp.focus();
 });
 
 async function renderHome(){
@@ -980,7 +1215,7 @@ $("addSlot").addEventListener("click", async () => {
 /* ---- CGU : affichage à l'entrée, bandeau permanent ---- */
 (function(){
   var C = window.RB_CONFIG || {};
-  var VERSION = "2026-11-16"; /* à changer quand les conditions changent : tout le monde doit réaccepter */
+  var VERSION = "2026-11-23"; /* à changer quand les conditions changent : tout le monde doit réaccepter */
   var KEY = "rb_cgu_accepted";
   var overlay = document.getElementById("cguOverlay"), body = document.getElementById("cguBody");
   var btnA = document.getElementById("cguAccept"), btnR = document.getElementById("cguRefuse"), btnC = document.getElementById("cguClose");
@@ -992,11 +1227,17 @@ $("addSlot").addEventListener("click", async () => {
     name: C.EDITOR_NAME, address: C.EDITOR_ADDRESS, email: C.CONTACT_EMAIL,
     date: new Date(VERSION).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
   };
-  var labels = { name: "Jordan Honorat", address: "26 rue de l'Ancien Lavoir, Leigne-sur-Fontaine", email: "JordanHonorat@outlook.fr" };
+  var labels = { name: "[À COMPLÉTER : nom de l'éditeur]", address: "[À COMPLÉTER : adresse]", email: "[À COMPLÉTER : e-mail de contact]" };
   document.querySelectorAll("[data-f]").forEach(function(el){
     var k = el.getAttribute("data-f"), v = fields[k];
     if (v) el.textContent = v; else { el.textContent = labels[k] || ""; el.className += " missing"; }
   });
+
+  /* Éditeur non professionnel anonyme (EDITOR_ANONYMOUS: true dans config.js, avec EDITOR_NAME vide) :
+     le texte affiche alors l'hébergeur et un contact au lieu du nom et de l'adresse */
+  var anon = !C.EDITOR_NAME && C.EDITOR_ANONYMOUS === true;
+  document.querySelectorAll('[data-ed="named"]').forEach(function(el){ el.classList.toggle("hidden", anon); });
+  document.querySelectorAll('[data-ed="anon"]').forEach(function(el){ el.classList.toggle("hidden", !anon); });
 
   function accepted(){ try{ return localStorage.getItem(KEY) === VERSION; }catch(e){ return sessionStorage_ok(); } }
   var memAccepted = false;
